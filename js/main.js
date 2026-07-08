@@ -2,6 +2,8 @@
 (function () {
   'use strict';
 
+  var __assetPromises = []; // tracks decorative asset loads so splash preloader can wait for them
+
   /* ---------- COUNTDOWN ---------- */
   // 8 Sep 2026, 16:00 Moscow time (UTC+3)
   var TARGET = new Date('2026-09-08T16:00:00+03:00').getTime();
@@ -216,7 +218,7 @@
     'ico--calendar': [0, 0], 'ico--rings':    [1, 0], 'ico--wine':  [2, 0], 'ico--envelope': [3, 0],
     'ico--stars':    [0, 1], 'ico--sparkles': [0, 1], 'ico--cheers': [1, 1], 'ico--disco': [2, 1], 'ico--cake': [3, 1]
   };
-  loadImg('assets/icons2_raw.png?v=1').then(function (icImg) {
+  __assetPromises.push(loadImg('assets/icons2_raw.png?v=1').then(function (icImg) {
     var cellW = icImg.width / ICON_COLS, cellH = icImg.height / ICON_ROWS;
     var padX = cellW * 0.08, padY = cellH * 0.06;
     var cache = {};
@@ -235,7 +237,7 @@
         el.style.backgroundPosition = 'center';
       });
     });
-  }).catch(function () {});
+  }).catch(function () {}));
 
   /* ---------- PROGRAM ILLUSTRATIONS (green raw, 4x2 grid) ---------- */
   // guest item index -> [col,row] in program_raw.png
@@ -248,7 +250,7 @@
     [1, 1], // Вечеринка   – cocktails
     [2, 1]  // Торт        – cake
   ];
-  loadImg('assets/program2_raw.png?v=1').then(function (pImg) {
+  __assetPromises.push(loadImg('assets/program2_raw.png?v=1').then(function (pImg) {
     var cols = 4, rows = 2;
     var cw = pImg.width / cols, chp = pImg.height / rows;
     var pad = cw * 0.06;
@@ -259,23 +261,32 @@
       var url = chromaKey(pImg, cell[0] * cw + pad, cell[1] * chp + pad, cw - pad * 2, chp - pad * 2);
       el.style.backgroundImage = 'url(' + url + ')';
     });
-  }).catch(function () {});
+  }).catch(function () {}));
 
   /* ---------- BIG HALF-PAGE FLOWERS (green raw) ---------- */
-  loadImg('assets/bigflower_raw.png?v=1').then(function (bf) {
+  __assetPromises.push(loadImg('assets/bigflower_raw.png?v=1').then(function (bf) {
     var url = chromaKey(bf, 0, 0, bf.width, bf.height);
     document.querySelectorAll('.bigflower').forEach(function (el) {
       el.style.backgroundImage = 'url(' + url + ')';
     });
-  }).catch(function () {});
+  }).catch(function () {}));
 
   /* ---------- BIG SIDE STAR-FLOWERS scattered along the page ---------- */
-  loadImg('assets/sideflowers_raw.png?v=1').then(function (sf) {
+  __assetPromises.push(loadImg('assets/sideflowers_raw.png?v=1').then(function (sf) {
     var half = sf.width / 2;
     var lime = chromaKey(sf, 0, 0, half, sf.height);
     var orange = chromaKey(sf, half, 0, half, sf.height);
     var host = document.getElementById('sideflowers');
     if (!host) return;
+    // extra hue-rotate tints so consecutive flowers down the page differ in color
+    // (base art only comes in 2 colors, so we recolor via CSS filter for real variety)
+    var TINTS = [
+      { hue: 0,    sat: 1 },      // as painted (lime / orange)
+      { hue: 300,  sat: 0.9 },    // -> pink/fuchsia
+      { hue: 195,  sat: 0.85 },   // -> blue
+      { hue: 255,  sat: 0.8 },    // -> lilac/purple
+      { hue: 40,   sat: 1.05 }    // -> warm yellow
+    ];
     // {top(vh), side, offset(vw), size(vw), img, rot}
     // spread big side-flowers down the WHOLE page (page is ~16x viewport tall),
     // alternating left/right so every section (incl. dresscode) gets large flowers
@@ -290,7 +301,8 @@
       var size = 30 + (toggle % 3) * 3;                 // 30..36vw (big, hero-scale)
       var off = -13 - (toggle % 3) * 2;                 // -13..-17vw: only outer petals overlay edges
       var rot = (toggle % 2 === 0 ? -1 : 1) * (8 + (toggle % 4) * 4);
-      SPOTS.push([Math.round(ty), side, off, size, img, rot]);
+      var tint = TINTS[toggle % TINTS.length];
+      SPOTS.push([Math.round(ty), side, off, size, img, rot, tint]);
       toggle++;
     }
     SPOTS.forEach(function (s) {
@@ -303,9 +315,13 @@
       el.style.height = s[3] + 'vw';
       el.style.setProperty('--r', s[5] + 'deg');
       el.style.animationDelay = (-(Math.random() * 9)).toFixed(1) + 's';
+      var t = s[6];
+      if (t.hue !== 0) {
+        el.style.filter = 'hue-rotate(' + t.hue + 'deg) saturate(' + t.sat + ') drop-shadow(0 10px 22px rgba(42,36,29,.14))';
+      }
       host.appendChild(el);
     });
-  }).catch(function () {});
+  }).catch(function () {}));
 
   /* ---------- REVEAL ON SCROLL ---------- */
   (function reveal() {
@@ -328,21 +344,73 @@
   })();
 
   /* ---------- SCALLOP SEPARATORS (smooth block transitions) ---------- */
-  // add a scalloped top edge to each main section whose bg differs from previous
+  // Insert a real scalloped divider <div> between any two adjacent sections
+  // whose background differs. Using a real sibling element (not a ::before
+  // pseudo on the section) guarantees it's never clipped by a section's own
+  // `overflow:hidden` (needed e.g. for the heart-blob decor on accent/pink
+  // sections). Width is matched to the LOWER section (sec--wide -> wide).
   (function scallops() {
-    var secs = document.querySelectorAll('main > .sec');
-    var prevBg = 'cream'; // hero above is cream-ish
+    var secs = Array.prototype.slice.call(document.querySelectorAll('main > .sec'));
+    var prevBg = 'cream';
+    var prevEl = null;
     secs.forEach(function (s) {
       var bg = s.classList.contains('sec--accent') ? 'accent'
              : s.classList.contains('sec--pink') ? 'pink'
              : s.classList.contains('sec--outro') ? 'outro' : 'cream';
-      if (bg !== prevBg) s.classList.add('sec--scallop');
+      if (bg !== prevBg && prevEl) {
+        prevEl.classList.add('sec--fuse-below');
+        s.classList.add('sec--fuse-above');
+        var div = document.createElement('div');
+        div.className = 'scallop-div scallop-div--' + bg;
+        if (s.classList.contains('sec--wide')) div.classList.add('scallop-div--wide');
+        div.setAttribute('aria-hidden', 'true');
+        s.parentNode.insertBefore(div, s);
+      }
       prevBg = bg;
+      prevEl = s;
     });
   })();
 
-  /* ---------- PARALLAX SIDE FLOWERS ---------- */
+  /* ---------- PROGRAM TIMELINE: scroll-draw line + parallax steps ---------- */
+  (function programLine() {
+    var wrap = document.querySelector('.program__wrap');
+    var fill = document.querySelector('.program__track-fill');
+    var bg = document.querySelector('.program__track-bg');
+    if (!wrap || !fill) return;
+
+    function update() {
+      var r = wrap.getBoundingClientRect();
+      var vh = window.innerHeight;
+      // fill grows from 0% to 100% as the timeline scrolls through the viewport
+      var total = r.height + vh * 0.55;
+      var passed = vh * 0.85 - r.top;
+      var p = Math.max(0, Math.min(1, passed / total));
+      fill.style.height = (p * 100).toFixed(1) + '%';
+
+      if (bg && !reduce) {
+        var center = r.top + r.height / 2;
+        var delta = (vh / 2 - center) * 0.08;
+        bg.style.transform = 'translateY(' + delta.toFixed(1) + 'px)';
+      }
+    }
+    var ticking = false;
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(function () { update(); ticking = false; });
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    update();
+  })();
+
+  /* ---------- PARALLAX: side flowers + hero cherubs + big flowers ---------- */
   if (!reduce) {
+    function clampPx(v, max) { return Math.max(-max, Math.min(max, v)); }
+    var cherubL = document.querySelector('.hero__cherub--l');
+    var cherubR = document.querySelector('.hero__cherub--r');
+    var bigTL = document.querySelector('.bigflower--tl');
+    var bigBR = document.querySelector('.bigflower--br');
     var pxTicking = false;
     window.addEventListener('scroll', function () {
       if (pxTicking) return;
@@ -353,6 +421,12 @@
           var speed = (i % 2 === 0 ? 0.06 : -0.05) * (1 + (i % 3) * 0.3);
           el.style.setProperty('--px', (y * speed).toFixed(1) + 'px');
         });
+        // cherubs drift opposite directions at gentle depth-of-field speeds
+        if (cherubL) cherubL.style.setProperty('--ppx', clampPx(y * 0.10, 70).toFixed(1) + 'px');
+        if (cherubR) cherubR.style.setProperty('--ppx', clampPx(y * -0.13, 70).toFixed(1) + 'px');
+        // big decorative flowers drift slower/subtler (background depth layer)
+        if (bigTL) bigTL.style.setProperty('--ppx', clampPx(y * 0.05, 90).toFixed(1) + 'px');
+        if (bigBR) bigBR.style.setProperty('--ppx', clampPx(y * -0.06, 90).toFixed(1) + 'px');
         pxTicking = false;
       });
     }, { passive: true });
@@ -449,7 +523,7 @@
   }
 
   /* ---------- DECOR: cherubs + petals from green raws ---------- */
-  Promise.all([
+  __assetPromises.push(Promise.all([
     loadImg('assets/cherubs_raw.png?v=3'),
     loadImg('assets/flowers_raw.png?v=3')
   ]).then(function (imgs) {
@@ -495,7 +569,7 @@
         '100%{transform:translateY(110vh) rotate(360deg)}}';
       document.head.appendChild(st);
     }
-  }).catch(function () { /* decor optional */ });
+  }).catch(function () { /* decor optional */ }));
 
   /* ---------- LIGHTBOX (open photos) ---------- */
   (function () {
@@ -540,5 +614,113 @@
       else if (e.key === 'ArrowLeft') show(idx - 1);
       else if (e.key === 'ArrowRight') show(idx + 1);
     });
+
+    /* ---- touch gestures: swipe left/right = prev/next, swipe down = close ---- */
+    var tStartX = 0, tStartY = 0, tCurX = 0, tCurY = 0, tDragging = false;
+    lb.addEventListener('touchstart', function (e) {
+      if (!lb.classList.contains('open') || e.touches.length !== 1) return;
+      tStartX = tCurX = e.touches[0].clientX;
+      tStartY = tCurY = e.touches[0].clientY;
+      tDragging = true;
+      lbImg.style.transition = 'none';
+    }, { passive: true });
+    lb.addEventListener('touchmove', function (e) {
+      if (!tDragging || e.touches.length !== 1) return;
+      tCurX = e.touches[0].clientX;
+      tCurY = e.touches[0].clientY;
+      var dx = tCurX - tStartX, dy = tCurY - tStartY;
+      // follow the finger a little for visual feedback (drag-to-dismiss feel)
+      if (Math.abs(dy) > Math.abs(dx)) {
+        lbImg.style.transform = 'translateY(' + (dy * 0.5) + 'px) scale(' + Math.max(0.85, 1 - Math.abs(dy) / 1400) + ')';
+      } else {
+        lbImg.style.transform = 'translateX(' + (dx * 0.4) + 'px)';
+      }
+    }, { passive: true });
+    lb.addEventListener('touchend', function () {
+      if (!tDragging) return;
+      tDragging = false;
+      lbImg.style.transition = '';
+      lbImg.style.transform = '';
+      var dx = tCurX - tStartX, dy = tCurY - tStartY;
+      var absX = Math.abs(dx), absY = Math.abs(dy);
+      var SWIPE_MIN = 46;
+      if (absY > absX && dy > 70) {
+        close();                              // swipe down -> dismiss
+      } else if (absX > absY && absX > SWIPE_MIN) {
+        show(idx + (dx < 0 ? 1 : -1));         // swipe left -> next, right -> prev
+      }
+    });
+  })();
+
+  /* ---------- SPLASH SCREEN (envelope + wax seal reveal) ---------- */
+  (function () {
+    var splash = document.getElementById('splash');
+    var sealBtn = document.getElementById('sealButton');
+    var preloader = document.getElementById('preloader');
+    if (!splash || !sealBtn) return;
+
+    document.body.classList.add('splash-active');
+
+    var MIN_PRELOAD_MS = 900;   // keep preloader visible at least this long once shown
+    var startTs = Date.now();
+    var siteReady = false;
+    var userClicked = false;
+    var preloaderShownAt = 0;
+
+    // "ready" = window fully loaded (all <img> etc.) + our decorative asset promises settled
+    var loadEvt = new Promise(function (res) {
+      if (document.readyState === 'complete') res();
+      else window.addEventListener('load', res, { once: true });
+    });
+    var decorSettled = Promise.all(__assetPromises.map(function (p) {
+      return p.catch(function () {}); // never let one failed decor asset block the reveal
+    }));
+
+    function finishReveal() {
+      splash.classList.add('hidden');
+      document.body.classList.remove('splash-active');
+      setTimeout(function () {
+        if (splash) splash.style.display = 'none';
+      }, 850);
+    }
+
+    function markReady() {
+      siteReady = true;
+      if (!userClicked) return; // wait for the click — reveal only happens after seal is opened
+      if (preloader && preloader.classList.contains('active')) {
+        var shownFor = Date.now() - preloaderShownAt;
+        var wait = Math.max(0, MIN_PRELOAD_MS - shownFor);
+        setTimeout(finishReveal, wait);
+      } else {
+        finishReveal();
+      }
+    }
+
+    Promise.all([loadEvt, decorSettled]).then(function () {
+      var elapsed = Date.now() - startTs;
+      setTimeout(markReady, Math.max(0, 300 - elapsed)); // tiny grace period so it never feels instant
+    });
+
+    sealBtn.addEventListener('click', function () {
+      if (userClicked) return;
+      userClicked = true;
+      splash.classList.add('open-animation');
+
+      if (siteReady) {
+        // let the envelope-opening animation play, then reveal the site
+        setTimeout(finishReveal, 550);
+      } else {
+        // main site is still loading its assets -> show the preloader spinner
+        preloaderShownAt = Date.now();
+        setTimeout(function () {
+          if (preloader) preloader.classList.add('active');
+        }, 450);
+      }
+    });
+
+    // safety net: never trap the guest behind the splash for more than ~8s
+    setTimeout(function () {
+      if (!siteReady) { siteReady = true; if (userClicked) finishReveal(); }
+    }, 8000);
   })();
 })();

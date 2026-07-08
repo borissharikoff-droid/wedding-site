@@ -8,9 +8,30 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;700&family=Caveat:wght@600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=8">
+<link rel="stylesheet" href="css/style.css?v=22">
 </head>
 <body>
+
+<!-- ===== OPENING SPLASH SCREEN ===== -->
+<div class="splash" id="splash" role="dialog" aria-modal="true" aria-label="Свадебное приглашение">
+  <!-- graffiti spray decor around the envelope -->
+  <div class="splash__spray splash__spray--blue" aria-hidden="true"></div>
+  <div class="splash__spray splash__spray--heart" aria-hidden="true"></div>
+  <div class="splash__envelope-container">
+    <div class="splash__envelope" id="envelope">
+      <!-- Wax Seal -->
+      <button class="splash__seal" id="sealButton" aria-label="Открыть приглашение">
+        <span class="splash__ripple"></span>
+      </button>
+      <div class="splash__hint">Кликните на печать,<br>чтобы открыть</div>
+    </div>
+  </div>
+  <!-- Hidden site preloader while assets load -->
+  <div class="splash__preloader" id="preloader" aria-hidden="true">
+    <div class="preloader__spinner"></div>
+    <div class="preloader__text">Загружаем приглашение...</div>
+  </div>
+</div>
 
 <!-- floating decorative flowers / cherubs (JS-populated) -->
 <div class="petals" id="petals" aria-hidden="true"></div>
@@ -37,8 +58,8 @@
 
   <!-- three photobooth photos in a row -->
   <div class="hero__photos">
-    <figure class="pbframe pbframe--a"><img src="assets/photos/couple_heart.png" alt="Филипп и Александра" data-lb loading="eager"></figure>
-    <figure class="pbframe pbframe--b"><img src="assets/photos/couple_kiss.png" alt="Филипп и Александра" data-lb loading="eager"></figure>
+    <figure class="pbframe pbframe--a"><img src="assets/photos/couple_rock.png" alt="Филипп и Александра" data-lb loading="eager"></figure>
+    <figure class="pbframe pbframe--b"><img src="assets/photos/couple_hands.png" alt="Филипп и Александра" data-lb loading="eager"></figure>
     <figure class="pbframe pbframe--c"><img src="assets/photos/couple_date.png" alt="08 09 26" data-lb loading="eager"></figure>
   </div>
 
@@ -87,39 +108,48 @@
     <h2 class="sec__title">Программа дня</h2>
     <p class="sec__text">Как пройдёт наш праздник — час за часом.</p>
 
-    <ul class="program program--zigzag">
-      <li class="prog">
-        <span class="prog__img" data-prog="0"></span>
-        <div class="prog__body"><span class="prog__time">16:30</span><span class="prog__name">Велком</span></div>
-      </li>
-      <li class="prog">
-        <span class="prog__img" data-prog="1"></span>
-        <div class="prog__body"><span class="prog__time">17:15</span><span class="prog__name">Первый блок</span></div>
-      </li>
-      <li class="prog">
-        <span class="prog__img" data-prog="2"></span>
-        <div class="prog__body"><span class="prog__time">17:55</span><span class="prog__name">Музыкальная пауза</span></div>
-      </li>
-      <li class="prog">
-        <span class="prog__img" data-prog="3"></span>
-        <div class="prog__body"><span class="prog__time">18:15</span><span class="prog__name">Второй блок</span></div>
-      </li>
-      <li class="prog">
-        <span class="prog__img" data-prog="4"></span>
-        <div class="prog__body"><span class="prog__time">19:00</span><span class="prog__name">Церемония</span></div>
-      </li>
-      <li class="prog">
-        <span class="prog__img" data-prog="5"></span>
-        <div class="prog__body"><span class="prog__time">19:20</span><span class="prog__name">Вечеринка с коктейлями и закусками</span></div>
-      </li>
-      <li class="prog">
-        <span class="prog__img" data-prog="6"></span>
-        <div class="prog__body"><span class="prog__time">21:30</span><span class="prog__name">Свадебный торт</span></div>
-      </li>
-    </ul>
+    <div class="program__wrap">
+      <div class="program__track" aria-hidden="true">
+        <span class="program__track-bg"></span>
+        <span class="program__track-fill"></span>
+      </div>
+      <ul class="program program--zigzag">
+        <li class="prog">
+          <span class="prog__img" data-prog="0"></span>
+          <div class="prog__body"><span class="prog__time">16:30</span><span class="prog__name">Велком</span></div>
+        </li>
+        <li class="prog">
+          <span class="prog__img" data-prog="1"></span>
+          <div class="prog__body"><span class="prog__time">17:15</span><span class="prog__name">Первый блок</span></div>
+        </li>
+        <li class="prog">
+          <span class="prog__img" data-prog="2"></span>
+          <div class="prog__body"><span class="prog__time">17:55</span><span class="prog__name">Музыкальная пауза</span></div>
+        </li>
+        <li class="prog">
+          <span class="prog__img" data-prog="3"></span>
+          <div class="prog__body"><span class="prog__time">18:15</span><span class="prog__name">Второй блок</span></div>
+        </li>
+        <li class="prog prog--hint">
+          <span class="prog__img" data-prog="4"></span>
+          <div class="prog__body"><span class="prog__time">19:00</span><span class="prog__name">Церемония</span></div>
+          <span class="handnote handnote--prog">такая вот программа!<svg viewBox="0 0 44 54" class="handnote__arrow handnote__arrow--prog" aria-hidden="true"><path d="M6 4C 36 2, 40 22, 24 48" fill="none" stroke="#c2461d" stroke-width="4" stroke-linecap="round"/><path d="M24 48L14 38M24 48L34 42" fill="none" stroke="#c2461d" stroke-width="4" stroke-linecap="round"/></svg></span>
+        </li>
+        <li class="prog">
+          <span class="prog__img" data-prog="5"></span>
+          <div class="prog__body"><span class="prog__time">19:20</span><span class="prog__name">Вечеринка с коктейлями и закусками</span></div>
+        </li>
+        <li class="prog">
+          <span class="prog__img" data-prog="6"></span>
+          <div class="prog__body"><span class="prog__time">21:30</span><span class="prog__name">Свадебный торт</span></div>
+        </li>
+      </ul>
+    </div>
+
 
     <button type="button" class="btn btn--accent btn--jelly prog__cal" id="addToCal">
-      🗓 Добавить в календарь
+      <svg class="btn__ic" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="15" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M3.5 10H20.5" stroke="currentColor" stroke-width="1.8"/><path d="M8 3.2V6.8M16 3.2V6.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="8" cy="14" r="1.1" fill="currentColor"/><circle cx="12" cy="14" r="1.1" fill="currentColor"/><circle cx="16" cy="14" r="1.1" fill="currentColor"/><circle cx="8" cy="17.3" r="1.1" fill="currentColor"/><circle cx="12" cy="17.3" r="1.1" fill="currentColor"/></svg>
+      Добавить в календарь
     </button>
   </section>
 
@@ -154,11 +184,11 @@
     <div class="venue__gallery">
       <div class="venue__hero">
         <span class="handnote">нам сюда!<svg viewBox="0 0 120 90" class="handnote__arrow" aria-hidden="true"><path d="M6 8 C 40 4, 96 18, 104 70" fill="none" stroke="#c2461d" stroke-width="4" stroke-linecap="round"/><path d="M104 70 L92 54 M104 70 L118 58" fill="none" stroke="#c2461d" stroke-width="4" stroke-linecap="round"/></svg></span>
-        <figure class="vph vph--big taped taped--c"><img src="assets/photos/venue_1.png" alt="Площадка Original" data-lb loading="lazy"></figure>
+        <figure class="vph vph--big taped taped--c"><img src="assets/photos/venue_3.png" alt="Площадка Original" data-lb loading="lazy"></figure>
       </div>
       <div class="venue__row">
         <figure class="vph taped taped--l"><img src="assets/photos/venue_2.png" alt="Площадка Original" data-lb loading="lazy"></figure>
-        <figure class="vph taped taped--c"><img src="assets/photos/venue_3.png" alt="Площадка Original" data-lb loading="lazy"></figure>
+        <figure class="vph taped taped--c"><img src="assets/photos/venue_1.png" alt="Площадка Original" data-lb loading="lazy"></figure>
         <figure class="vph taped taped--r"><img src="assets/photos/venue_4.png" alt="Площадка Original" data-lb loading="lazy"></figure>
       </div>
     </div>
@@ -236,12 +266,12 @@
     <form class="rsvp" id="rsvpForm" novalidate autocomplete="off">
       <label class="rsvp__field">
         <span>Фамилия и имя</span>
-        <input type="text" name="name" required autocomplete="off" placeholder="Например, Филипп Смирнов">
+        <input type="text" name="name" required autocomplete="off" placeholder="Например, Сильвестр Задов">
       </label>
 
       <label class="rsvp__field">
         <span>Контакт (Telegram или телефон)</span>
-        <input type="text" name="contact" required autocomplete="off" placeholder="@username или +7 900 000-00-00">
+        <input type="text" name="contact" required autocomplete="off" placeholder="@username или 88005553535">
       </label>
 
       <fieldset class="rsvp__choice">
@@ -283,6 +313,6 @@
   <button class="lightbox__nav lightbox__nav--next" id="lbNext" aria-label="Следующее">›</button>
 </div>
 
-<script src="js/main.js?v=8"></script>
+<script src="js/main.js?v=13"></script>
 </body>
 </html>
