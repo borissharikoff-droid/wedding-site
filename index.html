@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Филипп & Александра — 08.09.2026</title>
+<meta name="description" content="Мы женимся! Филипп и Александра приглашают вас отпраздновать 8 сентября 2026.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Manrope:wght@400;500;700&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css?v=8">
+</head>
+<body>
+
+<!-- floating decorative flowers / cherubs (JS-populated) -->
+<div class="petals" id="petals" aria-hidden="true"></div>
+
+<!-- big side star-flowers scattered down the page (JS-populated) -->
+<div class="sideflowers" id="sideflowers" aria-hidden="true"></div>
+
+<!-- big decorative half-page flowers (JS-populated) -->
+<div class="bigflower bigflower--tl" aria-hidden="true"></div>
+<div class="bigflower bigflower--br" aria-hidden="true"></div>
+
+<!-- ===== HERO ===== -->
+<header class="hero">
+  <!-- big pulsing heart blob behind hero -->
+  <svg class="heartblob heartblob--hero" viewBox="0 0 200 185" aria-hidden="true"><path d="M100 175C-40 90 30 5 100 55C170 5 240 90 100 175Z"/></svg>
+
+  <div class="hero__cherub hero__cherub--l" aria-hidden="true"></div>
+  <div class="hero__cherub hero__cherub--r" aria-hidden="true"></div>
+
+  <div class="hero__kicker">Свадебное приглашение</div>
+
+  <h1 class="hero__title">Мы<br>женимся</h1>
+  <p class="hero__sub">Да, у нас наконец-то свадьба — и мы зовём тебя отпраздновать вместе.</p>
+
+  <!-- three photobooth photos in a row -->
+  <div class="hero__photos">
+    <figure class="pbframe pbframe--a"><img src="assets/photos/couple_heart.png" alt="Филипп и Александра" data-lb loading="eager"></figure>
+    <figure class="pbframe pbframe--b"><img src="assets/photos/couple_kiss.png" alt="Филипп и Александра" data-lb loading="eager"></figure>
+    <figure class="pbframe pbframe--c"><img src="assets/photos/couple_date.png" alt="08 09 26" data-lb loading="eager"></figure>
+  </div>
+
+  <div class="hero__names">Филипп <span>&</span> Александра</div>
+  <div class="hero__date">08 · 09 · 2026 · вторник</div>
+
+  <!-- countdown -->
+  <div class="countdown" id="countdown" aria-label="Обратный отсчёт">
+    <div class="cd__cell">
+      <div class="cd__ring"><span class="cd__num" id="cd-days">00</span></div>
+      <span class="cd__lbl">дней</span>
+    </div>
+    <div class="cd__cell">
+      <div class="cd__ring"><span class="cd__num" id="cd-hours">00</span></div>
+      <span class="cd__lbl">часов</span>
+    </div>
+    <div class="cd__cell">
+      <div class="cd__ring"><span class="cd__num" id="cd-min">00</span></div>
+      <span class="cd__lbl">минут</span>
+    </div>
+    <div class="cd__cell">
+      <div class="cd__ring"><span class="cd__num" id="cd-sec">00</span></div>
+      <span class="cd__lbl">секунд</span>
+    </div>
+  </div>
+  <div class="countdown__done" id="cd-done" hidden>Сегодня тот самый день! ♥</div>
+
+  <a href="#rsvp" class="btn btn--accent hero__cta">Подтвердить присутствие</a>
+</header>
+
+<main>
+  <!-- ===== INVITE / GREETING ===== -->
+  <section class="sec sec--cream" id="about">
+    <span class="ico ico--calendar" aria-hidden="true"></span>
+    <h2 class="sec__title">Дорогие друзья!</h2>
+    <p class="sec__text">
+      С огромной радостью приглашаем вас на нашу свадьбу, которая состоится
+      <b>8 сентября 2026 года</b>. Мы будем очень счастливы разделить
+      этот особенный день вместе с вами и создать общие воспоминания на всю жизнь.
+    </p>
+  </section>
+
+  <!-- ===== PROGRAM ===== -->
+  <section class="sec sec--pink" id="program">
+    <span class="ico ico--sparkles ico--wobble" aria-hidden="true"></span>
+    <h2 class="sec__title">Программа дня</h2>
+    <p class="sec__text">Как пройдёт наш праздник — час за часом.</p>
+
+    <ul class="program program--zigzag">
+      <li class="prog">
+        <span class="prog__img" data-prog="0"></span>
+        <div class="prog__body"><span class="prog__time">16:30</span><span class="prog__name">Велком</span></div>
+      </li>
+      <li class="prog">
+        <span class="prog__img" data-prog="1"></span>
+        <div class="prog__body"><span class="prog__time">17:15</span><span class="prog__name">Первый блок</span></div>
+      </li>
+      <li class="prog">
+        <span class="prog__img" data-prog="2"></span>
+        <div class="prog__body"><span class="prog__time">17:55</span><span class="prog__name">Музыкальная пауза</span></div>
+      </li>
+      <li class="prog">
+        <span class="prog__img" data-prog="3"></span>
+        <div class="prog__body"><span class="prog__time">18:15</span><span class="prog__name">Второй блок</span></div>
+      </li>
+      <li class="prog">
+        <span class="prog__img" data-prog="4"></span>
+        <div class="prog__body"><span class="prog__time">19:00</span><span class="prog__name">Церемония</span></div>
+      </li>
+      <li class="prog">
+        <span class="prog__img" data-prog="5"></span>
+        <div class="prog__body"><span class="prog__time">19:20</span><span class="prog__name">Вечеринка с коктейлями и закусками</span></div>
+      </li>
+      <li class="prog">
+        <span class="prog__img" data-prog="6"></span>
+        <div class="prog__body"><span class="prog__time">21:30</span><span class="prog__name">Свадебный торт</span></div>
+      </li>
+    </ul>
+
+    <button type="button" class="btn btn--accent btn--jelly prog__cal" id="addToCal">
+      🗓 Добавить в календарь
+    </button>
+  </section>
+
+  <!-- ===== VENUE ===== -->
+  <section class="sec sec--cream sec--wide" id="venue">
+    <span class="ico ico--rings" aria-hidden="true"></span>
+    <h2 class="sec__title">Место проведения</h2>
+    <div class="venue__card">
+      <span class="venue__kicker">Площадка</span>
+      <p class="venue__name">Original</p>
+      <p class="venue__addr">
+        Москва, Подколокольный пер., 16 стр. 4<br>
+        <span class="muted">вход со стороны Яузского бульвара</span>
+      </p>
+    </div>
+    <div class="venue__btns">
+      <a class="ybtn ybtn--nav" target="_blank" rel="noopener"
+         href="https://yandex.ru/navi/?whatshere%5Bpoint%5D=37.6469,55.7516&whatshere%5Bzoom%5D=17&text=Москва, Подколокольный переулок, 16 строение 4">
+        <span class="ybtn__ic ybtn__ic--nav" aria-hidden="true"></span>
+        <span class="ybtn__txt"><b>Яндекс Навигатор</b><small>Проложить маршрут</small></span>
+      </a>
+      <a class="ybtn ybtn--go" target="_blank" rel="noopener"
+         href="https://3.redirect.appmetrica.yandex.com/route?end-lat=55.7516&end-lon=37.6469&ref=weddingsite&appmetrica_tracking_id=1178268795219780156">
+        <span class="ybtn__ic ybtn__ic--go" aria-hidden="true"></span>
+        <span class="ybtn__txt"><b>Яндекс Go</b><small>Заказать такси</small></span>
+      </a>
+    </div>
+    <a class="venue__site" target="_blank" rel="noopener"
+       href="https://whitestudios.ru/allstudios/original">Сайт площадки →</a>
+
+    <!-- venue photos (taped scrapbook) -->
+    <div class="venue__gallery">
+      <div class="venue__hero">
+        <span class="handnote">нам сюда!<svg viewBox="0 0 120 90" class="handnote__arrow" aria-hidden="true"><path d="M6 8 C 40 4, 96 18, 104 70" fill="none" stroke="#c2461d" stroke-width="4" stroke-linecap="round"/><path d="M104 70 L92 54 M104 70 L118 58" fill="none" stroke="#c2461d" stroke-width="4" stroke-linecap="round"/></svg></span>
+        <figure class="vph vph--big taped taped--c"><img src="assets/photos/venue_1.png" alt="Площадка Original" data-lb loading="lazy"></figure>
+      </div>
+      <div class="venue__row">
+        <figure class="vph taped taped--l"><img src="assets/photos/venue_2.png" alt="Площадка Original" data-lb loading="lazy"></figure>
+        <figure class="vph taped taped--c"><img src="assets/photos/venue_3.png" alt="Площадка Original" data-lb loading="lazy"></figure>
+        <figure class="vph taped taped--r"><img src="assets/photos/venue_4.png" alt="Площадка Original" data-lb loading="lazy"></figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== DRESSCODE ===== -->
+  <section class="sec sec--cream" id="dresscode">
+    <span class="ico ico--stars ico--wobble" aria-hidden="true"></span>
+    <h2 class="sec__title">Дресс-код</h2>
+    <p class="sec__text">
+      Наряды в оттенках нашей палитры — мягких или насыщенных. Формат торжественный, но комфортный.
+    </p>
+
+    <div class="palette">
+      <div class="palette__row">
+        <span class="palette__lbl">Нежные</span>
+        <div class="palette__chips">
+          <i style="--c:#9caf82" title="шалфейный"></i>
+          <i style="--c:#cdd98a" title="лаймовый"></i>
+          <i style="--c:#e6a9cb" title="розовый"></i>
+          <i style="--c:#c3d3f2" title="голубой"></i>
+          <i style="--c:#f4cf7a" title="жёлтый"></i>
+          <i style="--c:#bd90c9" title="сиреневый"></i>
+          <i style="--c:#d8cdb4" title="бежевый"></i>
+        </div>
+      </div>
+      <div class="palette__row">
+        <span class="palette__lbl">Насыщенные</span>
+        <div class="palette__chips">
+          <i style="--c:#6a6f2c" title="тёмно-оливковый"></i>
+          <i style="--c:#c2c832" title="лайм"></i>
+          <i style="--c:#d95a92" title="фуксия"></i>
+          <i style="--c:#8aa7e8" title="синий"></i>
+          <i style="--c:#f4a63d" title="оранжевый"></i>
+          <i style="--c:#5e3866" title="фиолетовый"></i>
+          <i style="--c:#4a3627" title="тёмно-коричневый"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="dc__cols">
+      <div class="dc__col dc__col--him">
+        <figure class="dc__photo pbframe taped taped--l"><img src="assets/photos/couple_save.png" alt="Образ для него" data-lb loading="lazy"></figure>
+        <h3 class="dc__h">Для него</h3>
+        <p>Костюм (олива, песок, графит); рубашка или поло без галстука; акцент — лайм или розовый.</p>
+      </div>
+      <div class="dc__col dc__col--her">
+        <figure class="dc__photo pbframe taped taped--r"><img src="assets/photos/couple_rock.png" alt="Образ для неё" data-lb loading="lazy"></figure>
+        <h3 class="dc__h">Для неё</h3>
+        <p>Платье или костюм в тонах палитры; шёлк, лён, атлас; длина любая.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== GIFTS ===== -->
+  <section class="sec sec--pink sec--hasheart" id="gifts">
+    <svg class="heartblob heartblob--sec" viewBox="0 0 200 185" aria-hidden="true"><path d="M100 175C-40 90 30 5 100 55C170 5 240 90 100 175Z"/></svg>
+    <span class="ico ico--wine ico--wobble" aria-hidden="true"></span>
+    <h2 class="sec__title">Пожелания к подаркам</h2>
+    <p class="sec__text">
+      Всё самое нужное у нас уже есть, поэтому больше всего мы будем рады денежному подарку —
+      он поможет нам осуществить наши общие планы и мечты. Но, конечно, любой знак внимания
+      мы примем с искренней благодарностью.
+    </p>
+    <span class="ico ico--envelope gifts__env ico--wobble" aria-hidden="true"></span>
+  </section>
+
+  <!-- ===== RSVP ===== -->
+  <section class="sec sec--accent sec--hasheart" id="rsvp">
+    <svg class="heartblob heartblob--rsvp" viewBox="0 0 200 185" aria-hidden="true"><path d="M100 175C-40 90 30 5 100 55C170 5 240 90 100 175Z"/></svg>
+    <canvas class="confetti" id="confetti" aria-hidden="true"></canvas>
+    <h2 class="sec__title">Подтвердите присутствие</h2>
+    <p class="sec__text sec__text--light">Пожалуйста, заполните анкету до <b>8 августа 2026 года</b>.</p>
+
+    <form class="rsvp" id="rsvpForm" novalidate autocomplete="off">
+      <label class="rsvp__field">
+        <span>Фамилия и имя</span>
+        <input type="text" name="name" required autocomplete="off" placeholder="Например, Филипп Смирнов">
+      </label>
+
+      <label class="rsvp__field">
+        <span>Контакт (Telegram или телефон)</span>
+        <input type="text" name="contact" required autocomplete="off" placeholder="@username или +7 900 000-00-00">
+      </label>
+
+      <fieldset class="rsvp__choice">
+        <legend>Будете ли вы с нами?</legend>
+        <label class="opt"><input type="radio" name="attend" value="yes" required><span>Да, буду! ♥</span></label>
+        <label class="opt"><input type="radio" name="attend" value="no"><span>К сожалению, не смогу</span></label>
+      </fieldset>
+
+      <button type="submit" class="btn btn--light rsvp__submit">Отправить анкету</button>
+      <p class="rsvp__note" id="rsvpNote" role="status"></p>
+    </form>
+  </section>
+
+  <!-- ===== FAQ ===== -->
+  <section class="sec sec--cream" id="faq">
+    <span class="ico ico--sparkles" aria-hidden="true"></span>
+    <h2 class="sec__title">Частые вопросы</h2>
+    <div class="faq" id="faq"></div>
+  </section>
+
+  <!-- ===== OUTRO ===== -->
+  <section class="sec sec--outro" id="outro">
+    <span class="ico ico--cake ico--light" aria-hidden="true"></span>
+    <h2 class="outro__title">До встречи!</h2>
+    <div class="outro__names">Филипп &amp; Александра</div>
+    <div class="outro__date">08 · 09 · 2026</div>
+    <div class="outro__contacts">
+      <a href="https://t.me/Chillyteen" target="_blank" rel="noopener">@Chillyteen</a>
+      <a href="https://t.me/CommercialPunk" target="_blank" rel="noopener">@CommercialPunk</a>
+    </div>
+  </section>
+</main>
+
+<!-- lightbox overlay -->
+<div class="lightbox" id="lightbox" aria-hidden="true" role="dialog" aria-label="Просмотр фото">
+  <button class="lightbox__close" id="lbClose" aria-label="Закрыть">×</button>
+  <button class="lightbox__nav lightbox__nav--prev" id="lbPrev" aria-label="Предыдущее">‹</button>
+  <img class="lightbox__img" id="lbImg" src="" alt="">
+  <button class="lightbox__nav lightbox__nav--next" id="lbNext" aria-label="Следующее">›</button>
+</div>
+
+<script src="js/main.js?v=8"></script>
+</body>
+</html>
