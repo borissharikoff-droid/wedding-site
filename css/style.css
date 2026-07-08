@@ -1,9 +1,10 @@
 /* ===== OPENING SPLASH SCREEN ===== */
 .splash{
   position:fixed;inset:0;background:#ede7dd;z-index:1000;
+  width:100%;height:100vh;height:100dvh; /* dvh: stays full-bleed even while mobile browser toolbar animates in/out */
   display:flex;align-items:center;justify-content:center;
   overflow:hidden;transition:opacity .8s cubic-bezier(.77,0,.175,1), visibility .8s;
-  user-select:none;-webkit-user-select:none;
+  user-select:none;-webkit-user-select:none;touch-action:none; /* belt-and-suspenders: blocks touch-scroll even if body lock fails */
 }
 .splash.hidden{opacity:0;visibility:hidden;pointer-events:none}
 .splash__envelope-container{
@@ -108,8 +109,12 @@
   opacity:0;transform:scale(1.25) translate(14px,10px) rotate(16deg);animation:none;
 }
 
-/* Prevent scrolling while splash is active */
-body.splash-active{overflow:hidden}
+/* Prevent scrolling while splash is active.
+   This class only handles desktop/mouse-wheel/Android-Chrome cases; the actual
+   iOS-Safari-proof lock (position:fixed + saved scrollY) is applied/removed
+   via inline styles in JS (see "SPLASH SCREEN" block in main.js), because
+   overflow:hidden alone does NOT stop touch-driven scrolling on iOS Safari. */
+html.splash-active,body.splash-active{overflow:hidden;height:100%}
 
 /* ===== PALETTE & TOKENS ===== */
 :root{

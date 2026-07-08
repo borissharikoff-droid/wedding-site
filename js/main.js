@@ -659,7 +659,62 @@
     var preloader = document.getElementById('preloader');
     if (!splash || !sealBtn) return;
 
-    document.body.classList.add('splash-active');
+    /* ---- iOS-Safari-proof scroll lock ----
+       overflow:hidden on body/html does NOT stop touch-driven scrolling on
+       iOS Safari (well-known WebKit quirk) — the user can still drag the
+       page a little, which is exactly what caused the "site content peeking
+       out from under the splash" bug on mobile. The only fully reliable fix
+       is to freeze <body> with position:fixed at its current scroll offset
+       while the splash is shown, then restore the exact scroll position
+       when the splash closes. */
+    var lockedScrollY = 0;
+    function lockBodyScroll() {
+      lockedScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+      document.documentElement.classList.add('splash-active');
+      document.body.classList.add('splash-active');
+      document.body.style.position = 'fixed';
+      document.body.style.top = (-lockedScrollY) + 'px';
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.width = '100%';
+    }
+    function unlockBodyScroll() {
+      document.documentElement.classList.remove('splash-active');
+      document.body.classList.remove('splash-active');
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.width = '';
+      // hard-reset overflow inline as an extra safety net beyond the class
+      // removal above (guards against any stray inline overflow from other
+      // code paths, e.g. an interrupted lightbox open/close).
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+      // restore exact scroll position instantly (no smooth-scroll jump)
+      var prevBehavior = document.documentElement.style.scrollBehavior;
+      document.documentElement.style.scrollBehavior = 'auto';
+      window.scrollTo(0, lockedScrollY);
+      document.documentElement.style.scrollBehavior = prevBehavior;
+      // Firefox/WebKit trackpad-scroll quirk: if the seal button (now
+      // display:none) keeps DOM focus, some browsers refuse to route
+      // wheel/keyboard scroll until focus moves elsewhere. Explicitly blur it.
+      if (document.activeElement && typeof document.activeElement.blur === 'function') {
+        document.activeElement.blur();
+      }
+      // splash overlay no longer needed — drop its touchmove blocker so it
+      // can never intercept/prevent scroll gestures again for any reason.
+      splash.removeEventListener('touchmove', blockTouch);
+    }
+    // extra safety net: block touchmove on the splash overlay itself so even
+    // if the body-freeze trick ever fails on some odd browser, the page
+    // behind still can't be dragged while the envelope is on screen.
+    // (removed again on reveal via unlockBodyScroll below, so it can never
+    // linger and interfere once the splash is gone.)
+    function blockTouch(e) { e.preventDefault(); }
+    splash.addEventListener('touchmove', blockTouch, { passive: false });
+
+    lockBodyScroll();
 
     var MIN_PRELOAD_MS = 900;   // keep preloader visible at least this long once shown
     var startTs = Date.now();
@@ -678,7 +733,7 @@
 
     function finishReveal() {
       splash.classList.add('hidden');
-      document.body.classList.remove('splash-active');
+      unlockBodyScroll();
       setTimeout(function () {
         if (splash) splash.style.display = 'none';
       }, 850);
