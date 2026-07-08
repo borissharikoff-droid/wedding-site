@@ -1,0 +1,2 @@
+# This is a staticfile configuration to tell Nixpacks to serve HTML
+index: index.html
