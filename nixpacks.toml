@@ -1,0 +1,9 @@
+# Nixpacks configuration to serve static files using Caddy
+[phases.setup]
+nixPkgs = ["caddy"]
+
+[phases.build]
+cmds = ["echo 'Build complete'"]
+
+[start]
+cmd = "exec caddy file-server --listen :$PORT --root ."
