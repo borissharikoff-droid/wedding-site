@@ -533,11 +533,11 @@ b{font-weight:700}
 .palette__lbl::before{right:calc(100% + 12px)}
 .palette__lbl::after{left:calc(100% + 12px)}
 .palette__chips{
-  display:grid;grid-template-columns:repeat(7,1fr);
+  display:flex;flex-wrap:wrap;justify-content:center;
   column-gap:14px;row-gap:34px;width:100%;
 }
 .palette__chips i{
-  aspect-ratio:1/1;border-radius:18px;background:var(--c);
+  flex:0 0 calc((100% - 14px*6)/7);aspect-ratio:1/1;border-radius:18px;background:var(--c);
   box-shadow:0 8px 18px rgba(42,36,29,.14), inset 0 0 0 1px rgba(255,255,255,.4);
   position:relative;transition:transform .18s ease;cursor:default;
 }
@@ -752,7 +752,7 @@ b{font-weight:700}
   /* palette: 7 cols too tight -> keep but smaller radius; row-gap stays large
      enough for the caption label so it never gets covered by the next row */
   .palette__chips{column-gap:8px;row-gap:30px}
-  .palette__chips i{border-radius:12px}
+  .palette__chips i{flex-basis:calc((100% - 8px*3)/4);border-radius:12px}
   /* side flowers: dimmer + smaller */
   .sideflower{opacity:.5}
   .taped::before,.taped::after{width:56px;height:20px}
@@ -776,7 +776,6 @@ b{font-weight:700}
   .cd__cell .cd__ring{width:70px}
   .cd__lbl{font-size:.55rem;letter-spacing:.14em}
   .hero__photos .pbframe{width:44%}
-  .palette__chips{grid-template-columns:repeat(4,1fr)}
 }
 @media(prefers-reduced-motion:reduce){
   .sideflower{animation:none!important}

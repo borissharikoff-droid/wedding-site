@@ -177,14 +177,31 @@
     return c.toDataURL('image/png');
   }
 
-  function loadImg(src) {
+  function loadImg(src, retries) {
+    retries = retries == null ? 2 : retries; // survive transient mobile-network blips
     return new Promise(function (res, rej) {
-      var im = new Image();
-      im.crossOrigin = 'anonymous';
-      im.onload = function () { res(im); };
-      im.onerror = rej;
-      im.src = src;
+      function attempt(triesLeft) {
+        var im = new Image();
+        im.crossOrigin = 'anonymous';
+        im.onload = function () { res(im); };
+        im.onerror = function () {
+          if (triesLeft > 0) {
+            setTimeout(function () { attempt(triesLeft - 1); }, 700);
+          } else {
+            rej(new Error('failed to load ' + src));
+          }
+        };
+        im.src = src + (src.indexOf('?') === -1 ? '?r=' : '&r=') + triesLeft;
+      }
+      attempt(retries);
     });
+  }
+
+  // run heavy work (canvas decode) off the critical rendering path so it never
+  // blocks scroll/input responsiveness right after the splash reveal
+  function whenIdle(fn) {
+    if (window.requestIdleCallback) window.requestIdleCallback(fn, { timeout: 2000 });
+    else setTimeout(fn, 60);
   }
 
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -219,22 +236,27 @@
     'ico--stars':    [0, 1], 'ico--sparkles': [0, 1], 'ico--cheers': [1, 1], 'ico--disco': [2, 1], 'ico--cake': [3, 1]
   };
   __assetPromises.push(loadImg('assets/icons2_raw.png?v=1').then(function (icImg) {
-    var cellW = icImg.width / ICON_COLS, cellH = icImg.height / ICON_ROWS;
-    var padX = cellW * 0.08, padY = cellH * 0.06;
-    var cache = {};
-    Object.keys(ICON_MAP).forEach(function (cls) {
-      var col = ICON_MAP[cls][0], row = ICON_MAP[cls][1];
-      var key = col + '_' + row;
-      if (!cache[key]) {
-        cache[key] = chromaKey(icImg,
-          col * cellW + padX, row * cellH + padY,
-          cellW - padX * 2, cellH - padY * 2);
-      }
-      var url = cache[key];
-      document.querySelectorAll('.' + cls).forEach(function (el) {
-        el.style.backgroundImage = 'url(' + url + ')';
-        el.style.backgroundSize = 'contain';
-        el.style.backgroundPosition = 'center';
+    return new Promise(function (resolve) {
+      whenIdle(function () {
+        var cellW = icImg.width / ICON_COLS, cellH = icImg.height / ICON_ROWS;
+        var padX = cellW * 0.08, padY = cellH * 0.06;
+        var cache = {};
+        Object.keys(ICON_MAP).forEach(function (cls) {
+          var col = ICON_MAP[cls][0], row = ICON_MAP[cls][1];
+          var key = col + '_' + row;
+          if (!cache[key]) {
+            cache[key] = chromaKey(icImg,
+              col * cellW + padX, row * cellH + padY,
+              cellW - padX * 2, cellH - padY * 2);
+          }
+          var url = cache[key];
+          document.querySelectorAll('.' + cls).forEach(function (el) {
+            el.style.backgroundImage = 'url(' + url + ')';
+            el.style.backgroundSize = 'contain';
+            el.style.backgroundPosition = 'center';
+          });
+        });
+        resolve();
       });
     });
   }).catch(function () {}));
@@ -251,75 +273,90 @@
     [2, 1]  // Торт        – cake
   ];
   __assetPromises.push(loadImg('assets/program2_raw.png?v=1').then(function (pImg) {
-    var cols = 4, rows = 2;
-    var cw = pImg.width / cols, chp = pImg.height / rows;
-    var pad = cw * 0.06;
-    document.querySelectorAll('.prog__img').forEach(function (el) {
-      var idx = parseInt(el.getAttribute('data-prog'), 10);
-      var cell = PROG_CELL[idx];
-      if (!cell) return;
-      var url = chromaKey(pImg, cell[0] * cw + pad, cell[1] * chp + pad, cw - pad * 2, chp - pad * 2);
-      el.style.backgroundImage = 'url(' + url + ')';
+    return new Promise(function (resolve) {
+      whenIdle(function () {
+        var cols = 4, rows = 2;
+        var cw = pImg.width / cols, chp = pImg.height / rows;
+        var pad = cw * 0.06;
+        document.querySelectorAll('.prog__img').forEach(function (el) {
+          var idx = parseInt(el.getAttribute('data-prog'), 10);
+          var cell = PROG_CELL[idx];
+          if (!cell) return;
+          var url = chromaKey(pImg, cell[0] * cw + pad, cell[1] * chp + pad, cw - pad * 2, chp - pad * 2);
+          el.style.backgroundImage = 'url(' + url + ')';
+        });
+        resolve();
+      });
     });
   }).catch(function () {}));
 
   /* ---------- BIG HALF-PAGE FLOWERS (green raw) ---------- */
   __assetPromises.push(loadImg('assets/bigflower_raw.png?v=1').then(function (bf) {
-    var url = chromaKey(bf, 0, 0, bf.width, bf.height);
-    document.querySelectorAll('.bigflower').forEach(function (el) {
-      el.style.backgroundImage = 'url(' + url + ')';
+    return new Promise(function (resolve) {
+      whenIdle(function () {
+        var url = chromaKey(bf, 0, 0, bf.width, bf.height);
+        document.querySelectorAll('.bigflower').forEach(function (el) {
+          el.style.backgroundImage = 'url(' + url + ')';
+        });
+        resolve();
+      });
     });
   }).catch(function () {}));
 
   /* ---------- BIG SIDE STAR-FLOWERS scattered along the page ---------- */
   __assetPromises.push(loadImg('assets/sideflowers_raw.png?v=1').then(function (sf) {
-    var half = sf.width / 2;
-    var lime = chromaKey(sf, 0, 0, half, sf.height);
-    var orange = chromaKey(sf, half, 0, half, sf.height);
-    var host = document.getElementById('sideflowers');
-    if (!host) return;
-    // extra hue-rotate tints so consecutive flowers down the page differ in color
-    // (base art only comes in 2 colors, so we recolor via CSS filter for real variety)
-    var TINTS = [
-      { hue: 0,    sat: 1 },      // as painted (lime / orange)
-      { hue: 300,  sat: 0.9 },    // -> pink/fuchsia
-      { hue: 195,  sat: 0.85 },   // -> blue
-      { hue: 255,  sat: 0.8 },    // -> lilac/purple
-      { hue: 40,   sat: 1.05 }    // -> warm yellow
-    ];
-    // {top(vh), side, offset(vw), size(vw), img, rot}
-    // spread big side-flowers down the WHOLE page (page is ~16x viewport tall),
-    // alternating left/right so every section (incl. dresscode) gets large flowers
-    var docVH = (document.body.scrollHeight / window.innerHeight) * 100; // total page height in vh
-    var STEP = 52;                 // vertical gap between flowers (vh) — denser coverage
-    var start = 50;                // start a bit below hero
-    var SPOTS = [];
-    var toggle = 0;
-    for (var ty = start; ty < docVH - 20; ty += STEP) {
-      var side = (toggle % 2 === 0) ? 'left' : 'right';
-      var img = (toggle % 2 === 0) ? lime : orange;
-      var size = 30 + (toggle % 3) * 3;                 // 30..36vw (big, hero-scale)
-      var off = -13 - (toggle % 3) * 2;                 // -13..-17vw: only outer petals overlay edges
-      var rot = (toggle % 2 === 0 ? -1 : 1) * (8 + (toggle % 4) * 4);
-      var tint = TINTS[toggle % TINTS.length];
-      SPOTS.push([Math.round(ty), side, off, size, img, rot, tint]);
-      toggle++;
-    }
-    SPOTS.forEach(function (s) {
-      var el = document.createElement('div');
-      el.className = 'sideflower';
-      el.style.backgroundImage = 'url(' + s[4] + ')';
-      el.style.top = s[0] + 'vh';
-      el.style[s[1]] = s[2] + 'vw';
-      el.style.width = s[3] + 'vw';
-      el.style.height = s[3] + 'vw';
-      el.style.setProperty('--r', s[5] + 'deg');
-      el.style.animationDelay = (-(Math.random() * 9)).toFixed(1) + 's';
-      var t = s[6];
-      if (t.hue !== 0) {
-        el.style.filter = 'hue-rotate(' + t.hue + 'deg) saturate(' + t.sat + ') drop-shadow(0 10px 22px rgba(42,36,29,.14))';
-      }
-      host.appendChild(el);
+    return new Promise(function (resolve) {
+      whenIdle(function () {
+        var half = sf.width / 2;
+        var lime = chromaKey(sf, 0, 0, half, sf.height);
+        var orange = chromaKey(sf, half, 0, half, sf.height);
+        var host = document.getElementById('sideflowers');
+        if (!host) { resolve(); return; }
+        // extra hue-rotate tints so consecutive flowers down the page differ in color
+        // (base art only comes in 2 colors, so we recolor via CSS filter for real variety)
+        var TINTS = [
+          { hue: 0,    sat: 1 },      // as painted (lime / orange)
+          { hue: 300,  sat: 0.9 },    // -> pink/fuchsia
+          { hue: 195,  sat: 0.85 },   // -> blue
+          { hue: 255,  sat: 0.8 },    // -> lilac/purple
+          { hue: 40,   sat: 1.05 }    // -> warm yellow
+        ];
+        // {top(vh), side, offset(vw), size(vw), img, rot}
+        // spread big side-flowers down the WHOLE page (page is ~16x viewport tall),
+        // alternating left/right so every section (incl. dresscode) gets large flowers
+        var docVH = (document.body.scrollHeight / window.innerHeight) * 100; // total page height in vh
+        var STEP = 52;                 // vertical gap between flowers (vh) — denser coverage
+        var start = 50;                // start a bit below hero
+        var SPOTS = [];
+        var toggle = 0;
+        for (var ty = start; ty < docVH - 20; ty += STEP) {
+          var side = (toggle % 2 === 0) ? 'left' : 'right';
+          var img = (toggle % 2 === 0) ? lime : orange;
+          var size = 30 + (toggle % 3) * 3;                 // 30..36vw (big, hero-scale)
+          var off = -13 - (toggle % 3) * 2;                 // -13..-17vw: only outer petals overlay edges
+          var rot = (toggle % 2 === 0 ? -1 : 1) * (8 + (toggle % 4) * 4);
+          var tint = TINTS[toggle % TINTS.length];
+          SPOTS.push([Math.round(ty), side, off, size, img, rot, tint]);
+          toggle++;
+        }
+        SPOTS.forEach(function (s) {
+          var el = document.createElement('div');
+          el.className = 'sideflower';
+          el.style.backgroundImage = 'url(' + s[4] + ')';
+          el.style.top = s[0] + 'vh';
+          el.style[s[1]] = s[2] + 'vw';
+          el.style.width = s[3] + 'vw';
+          el.style.height = s[3] + 'vw';
+          el.style.setProperty('--r', s[5] + 'deg');
+          el.style.animationDelay = (-(Math.random() * 9)).toFixed(1) + 's';
+          var t = s[6];
+          if (t.hue !== 0) {
+            el.style.filter = 'hue-rotate(' + t.hue + 'deg) saturate(' + t.sat + ') drop-shadow(0 10px 22px rgba(42,36,29,.14))';
+          }
+          host.appendChild(el);
+        });
+        resolve();
+      });
     });
   }).catch(function () {}));
 
@@ -527,48 +564,53 @@
     loadImg('assets/cherubs_raw.png?v=3'),
     loadImg('assets/flowers_raw.png?v=3')
   ]).then(function (imgs) {
-    var chImg = imgs[0], flImg = imgs[1];
+    return new Promise(function (resolve) {
+      whenIdle(function () {
+        var chImg = imgs[0], flImg = imgs[1];
 
-    // cherubs: split into left / right halves
-    var cw = chImg.width, ch = chImg.height;
-    var cherubL = chromaKey(chImg, 0, 0, cw / 2, ch);
-    var cherubR = chromaKey(chImg, cw / 2, 0, cw / 2, ch);
-    var elL = document.querySelector('.hero__cherub--l');
-    var elR = document.querySelector('.hero__cherub--r');
-    if (elL) { elL.style.backgroundImage = 'url(' + cherubL + ')'; elL.style.backgroundSize = 'contain'; elL.style.backgroundPosition = 'center'; }
-    if (elR) { elR.style.backgroundImage = 'url(' + cherubR + ')'; elR.style.backgroundSize = 'contain'; elR.style.backgroundPosition = 'center'; }
+        // cherubs: split into left / right halves
+        var cw = chImg.width, ch = chImg.height;
+        var cherubL = chromaKey(chImg, 0, 0, cw / 2, ch);
+        var cherubR = chromaKey(chImg, cw / 2, 0, cw / 2, ch);
+        var elL = document.querySelector('.hero__cherub--l');
+        var elR = document.querySelector('.hero__cherub--r');
+        if (elL) { elL.style.backgroundImage = 'url(' + cherubL + ')'; elL.style.backgroundSize = 'contain'; elL.style.backgroundPosition = 'center'; }
+        if (elR) { elR.style.backgroundImage = 'url(' + cherubR + ')'; elR.style.backgroundSize = 'contain'; elR.style.backgroundPosition = 'center'; }
 
-    // flowers: split into pink (left) / orange (right)
-    var fw = flImg.width, fh = flImg.height;
-    var flowerPink = chromaKey(flImg, 0, 0, fw / 2, fh);
-    var flowerOrange = chromaKey(flImg, fw / 2, 0, fw / 2, fh);
+        // flowers: split into pink (left) / orange (right)
+        var fw = flImg.width, fh = flImg.height;
+        var flowerPink = chromaKey(flImg, 0, 0, fw / 2, fh);
+        var flowerOrange = chromaKey(flImg, fw / 2, 0, fw / 2, fh);
 
-    // floating petals
-    var petals = document.getElementById('petals');
-    if (petals && !reduce) {
-      var COUNT = window.innerWidth < 640 ? 7 : 12;
-      for (var i = 0; i < COUNT; i++) {
-        var p = document.createElement('div');
-        var size = 26 + Math.random() * 44;
-        p.className = 'petal';
-        p.style.backgroundImage = 'url(' + (Math.random() > 0.5 ? flowerPink : flowerOrange) + ')';
-        p.style.backgroundSize = 'contain';
-        p.style.backgroundRepeat = 'no-repeat';
-        p.style.width = size + 'px';
-        p.style.height = size + 'px';
-        p.style.left = (Math.random() * 100) + 'vw';
-        var dur = 14 + Math.random() * 16;
-        var delay = -Math.random() * dur;
-        p.style.animation = 'fall ' + dur + 's linear ' + delay + 's infinite';
-        petals.appendChild(p);
-      }
-      var st = document.createElement('style');
-      st.textContent =
-        '@keyframes fall{' +
-        '0%{transform:translateY(-10vh) rotate(0deg)}' +
-        '100%{transform:translateY(110vh) rotate(360deg)}}';
-      document.head.appendChild(st);
-    }
+        // floating petals
+        var petals = document.getElementById('petals');
+        if (petals && !reduce) {
+          var COUNT = window.innerWidth < 640 ? 7 : 12;
+          for (var i = 0; i < COUNT; i++) {
+            var p = document.createElement('div');
+            var size = 26 + Math.random() * 44;
+            p.className = 'petal';
+            p.style.backgroundImage = 'url(' + (Math.random() > 0.5 ? flowerPink : flowerOrange) + ')';
+            p.style.backgroundSize = 'contain';
+            p.style.backgroundRepeat = 'no-repeat';
+            p.style.width = size + 'px';
+            p.style.height = size + 'px';
+            p.style.left = (Math.random() * 100) + 'vw';
+            var dur = 14 + Math.random() * 16;
+            var delay = -Math.random() * dur;
+            p.style.animation = 'fall ' + dur + 's linear ' + delay + 's infinite';
+            petals.appendChild(p);
+          }
+          var st = document.createElement('style');
+          st.textContent =
+            '@keyframes fall{' +
+            '0%{transform:translateY(-10vh) rotate(0deg)}' +
+            '100%{transform:translateY(110vh) rotate(360deg)}}';
+          document.head.appendChild(st);
+        }
+        resolve();
+      });
+    });
   }).catch(function () { /* decor optional */ }));
 
   /* ---------- LIGHTBOX (open photos) ---------- */
@@ -659,53 +701,40 @@
     var preloader = document.getElementById('preloader');
     if (!splash || !sealBtn) return;
 
-    /* ---- Scroll lock (bulletproof: 2 independent layers, real-device proof) ----
-       Layer 1 — freeze <body> with position:fixed at the current scrollY.
-       This is the industry-standard technique (used by nearly every modal/
-       drawer library) and is the ONLY method that reliably stops touch-driven
-       scroll on real iOS Safari and Android Chrome — plain overflow:hidden
-       on body/html does NOT stop touch scrolling on iOS (well-known WebKit
-       quirk). We restore the exact scroll position on unlock.
-       Layer 2 — document-wide preventDefault() on touchmove/wheel while the
-       splash is up, as a second independent safety net: if layer 1 were ever
-       defeated by some in-app webview's weird compositing, this still blocks
-       the gesture at the event level. Both layers are always added/removed
-       together and fully cleaned up on unlock, so neither can ever "stick". */
-    var lockedScrollY = 0;
+    /* ---- Scroll lock (webview-safe: event-blocking only, NO layout change) ----
+       IMPORTANT: this invite is shared mainly via Telegram (contacts are t.me
+       handles), so guests open it inside Telegram's IN-APP BROWSER (WebView),
+       not real mobile Safari/Chrome. The classic "freeze body with
+       position:fixed" technique is well known to PERMANENTLY break scrolling
+       in Telegram/Instagram/WeChat/some Android in-app webviews: removing
+       position:fixed afterwards sometimes leaves the page scroll-locked
+       forever, because it conflicts with the webview's own compositing of
+       <body>. We deliberately do NOT touch body's position/layout at all.
+       Instead we block scrolling purely at the event level — preventDefault()
+       on touchstart/touchmove/wheel while the splash is up, document-wide.
+       This never modifies layout, so it can never get permanently "stuck".
+       CSS also sets touch-action:none directly on .splash (compositor-level
+       block, works even before JS attaches listeners) as a second, completely
+       independent layer that needs zero cleanup. */
     function blockScroll(e) { e.preventDefault(); }
     function lockBodyScroll() {
-      lockedScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
       document.documentElement.classList.add('splash-active');
       document.body.classList.add('splash-active');
-      document.body.style.position = 'fixed';
-      document.body.style.top = (-lockedScrollY) + 'px';
-      document.body.style.left = '0';
-      document.body.style.right = '0';
-      document.body.style.width = '100%';
+      document.addEventListener('touchstart', blockScroll, { passive: false });
       document.addEventListener('touchmove', blockScroll, { passive: false });
       document.addEventListener('wheel', blockScroll, { passive: false });
     }
     function unlockBodyScroll() {
       document.documentElement.classList.remove('splash-active');
       document.body.classList.remove('splash-active');
+      document.removeEventListener('touchstart', blockScroll, { passive: false });
       document.removeEventListener('touchmove', blockScroll, { passive: false });
       document.removeEventListener('wheel', blockScroll, { passive: false });
-      // undo the position:fixed freeze
-      document.body.style.position = '';
-      document.body.style.top = '';
-      document.body.style.left = '';
-      document.body.style.right = '';
-      document.body.style.width = '';
       // hard-reset overflow inline as an extra safety net beyond the class
       // removal above (guards against any stray inline overflow from other
       // code paths, e.g. an interrupted lightbox open/close).
       document.documentElement.style.overflow = '';
       document.body.style.overflow = '';
-      // restore the exact scroll position the guest was at (instant, no smooth-scroll jump)
-      var prevBehavior = document.documentElement.style.scrollBehavior;
-      document.documentElement.style.scrollBehavior = 'auto';
-      window.scrollTo(0, lockedScrollY);
-      document.documentElement.style.scrollBehavior = prevBehavior;
       // Firefox/WebKit trackpad-scroll quirk: if the seal button (now
       // display:none) keeps DOM focus, some browsers refuse to route
       // wheel/keyboard scroll until focus moves elsewhere. Explicitly blur it.
@@ -713,15 +742,6 @@
         document.activeElement.blur();
       }
     }
-
-    // Absolute failsafe: if for any reason the reveal path throws before
-    // reaching unlockBodyScroll(), auto-recover so the guest is never stuck.
-    window.addEventListener('pageshow', function (e) {
-      if (e.persisted && document.body.style.position === 'fixed' &&
-          splash.classList.contains('hidden')) {
-        unlockBodyScroll();
-      }
-    });
 
     lockBodyScroll();
 
@@ -731,14 +751,22 @@
     var userClicked = false;
     var preloaderShownAt = 0;
 
-    // "ready" = window fully loaded (all <img> etc.) + our decorative asset promises settled
+    // "ready" = window fully loaded (all <img> etc. declared in the HTML — hero
+    // photos, envelope, wax seal). We deliberately do NOT wait on the heavy
+    // decorative sprite sheets (icons/program illustrations/flowers/cherubs,
+    // ~14MB total, loaded dynamically via JS) — on a slow mobile connection
+    // that download can take a long time or stall, which used to trap guests
+    // behind the splash screen and made the whole experience feel broken.
+    // Those assets now load fully independently in the background (with their
+    // own retry logic in loadImg) and simply fade their icons/decor in
+    // whenever they arrive, even after the site is already revealed.
     var loadEvt = new Promise(function (res) {
       if (document.readyState === 'complete') res();
       else window.addEventListener('load', res, { once: true });
     });
-    var decorSettled = Promise.all(__assetPromises.map(function (p) {
-      return p.catch(function () {}); // never let one failed decor asset block the reveal
-    }));
+    // swallow any decor failures so a rejected promise never surfaces as an
+    // unhandled rejection anywhere else in the app
+    __assetPromises.forEach(function (p) { p.catch(function () {}); });
 
     function finishReveal() {
       splash.classList.add('hidden');
@@ -760,7 +788,7 @@
       }
     }
 
-    Promise.all([loadEvt, decorSettled]).then(function () {
+    loadEvt.then(function () {
       var elapsed = Date.now() - startTs;
       setTimeout(markReady, Math.max(0, 300 - elapsed)); // tiny grace period so it never feels instant
     });
