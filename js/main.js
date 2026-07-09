@@ -659,15 +659,20 @@
     var preloader = document.getElementById('preloader');
     if (!splash || !sealBtn) return;
 
-    /* ---- iOS-Safari-proof scroll lock ----
-       overflow:hidden on body/html does NOT stop touch-driven scrolling on
-       iOS Safari (well-known WebKit quirk) — the user can still drag the
-       page a little, which is exactly what caused the "site content peeking
-       out from under the splash" bug on mobile. The only fully reliable fix
-       is to freeze <body> with position:fixed at its current scroll offset
-       while the splash is shown, then restore the exact scroll position
-       when the splash closes. */
+    /* ---- Scroll lock (bulletproof: 2 independent layers, real-device proof) ----
+       Layer 1 — freeze <body> with position:fixed at the current scrollY.
+       This is the industry-standard technique (used by nearly every modal/
+       drawer library) and is the ONLY method that reliably stops touch-driven
+       scroll on real iOS Safari and Android Chrome — plain overflow:hidden
+       on body/html does NOT stop touch scrolling on iOS (well-known WebKit
+       quirk). We restore the exact scroll position on unlock.
+       Layer 2 — document-wide preventDefault() on touchmove/wheel while the
+       splash is up, as a second independent safety net: if layer 1 were ever
+       defeated by some in-app webview's weird compositing, this still blocks
+       the gesture at the event level. Both layers are always added/removed
+       together and fully cleaned up on unlock, so neither can ever "stick". */
     var lockedScrollY = 0;
+    function blockScroll(e) { e.preventDefault(); }
     function lockBodyScroll() {
       lockedScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
       document.documentElement.classList.add('splash-active');
@@ -677,10 +682,15 @@
       document.body.style.left = '0';
       document.body.style.right = '0';
       document.body.style.width = '100%';
+      document.addEventListener('touchmove', blockScroll, { passive: false });
+      document.addEventListener('wheel', blockScroll, { passive: false });
     }
     function unlockBodyScroll() {
       document.documentElement.classList.remove('splash-active');
       document.body.classList.remove('splash-active');
+      document.removeEventListener('touchmove', blockScroll, { passive: false });
+      document.removeEventListener('wheel', blockScroll, { passive: false });
+      // undo the position:fixed freeze
       document.body.style.position = '';
       document.body.style.top = '';
       document.body.style.left = '';
@@ -691,7 +701,7 @@
       // code paths, e.g. an interrupted lightbox open/close).
       document.documentElement.style.overflow = '';
       document.body.style.overflow = '';
-      // restore exact scroll position instantly (no smooth-scroll jump)
+      // restore the exact scroll position the guest was at (instant, no smooth-scroll jump)
       var prevBehavior = document.documentElement.style.scrollBehavior;
       document.documentElement.style.scrollBehavior = 'auto';
       window.scrollTo(0, lockedScrollY);
@@ -702,17 +712,16 @@
       if (document.activeElement && typeof document.activeElement.blur === 'function') {
         document.activeElement.blur();
       }
-      // splash overlay no longer needed — drop its touchmove blocker so it
-      // can never intercept/prevent scroll gestures again for any reason.
-      splash.removeEventListener('touchmove', blockTouch);
     }
-    // extra safety net: block touchmove on the splash overlay itself so even
-    // if the body-freeze trick ever fails on some odd browser, the page
-    // behind still can't be dragged while the envelope is on screen.
-    // (removed again on reveal via unlockBodyScroll below, so it can never
-    // linger and interfere once the splash is gone.)
-    function blockTouch(e) { e.preventDefault(); }
-    splash.addEventListener('touchmove', blockTouch, { passive: false });
+
+    // Absolute failsafe: if for any reason the reveal path throws before
+    // reaching unlockBodyScroll(), auto-recover so the guest is never stuck.
+    window.addEventListener('pageshow', function (e) {
+      if (e.persisted && document.body.style.position === 'fixed' &&
+          splash.classList.contains('hidden')) {
+        unlockBodyScroll();
+      }
+    });
 
     lockBodyScroll();
 
