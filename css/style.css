@@ -684,6 +684,14 @@ b{font-weight:700}
 }
 .hero__photos .pbframe{width:clamp(120px,26vw,180px)}
 .hero__photos .pbframe img{aspect-ratio:3/4}
+/* these photos already come with their own vintage 35mm-filmstrip border
+   (sprocket holes, frame numbers) baked into the image itself, so we drop
+   the extra white polaroid mat + grayscale filter that .pbframe normally
+   adds — it would double-frame the picture and look off. Aspect ratio
+   matches the supplied art (slightly wider than tall, ~10/9) so cover-crop
+   stays minimal and never eats into the sprocket-hole border. */
+.pbframe--film{background:transparent;padding:0;box-shadow:0 10px 26px rgba(42,36,29,.22)}
+.pbframe--film img{filter:none;border-radius:8px;aspect-ratio:10/9}
 .pbframe--a{transform:rotate(-4deg)}
 .pbframe--b{transform:rotate(1deg) translateY(-6px)}
 .pbframe--c{transform:rotate(5deg)}
@@ -772,6 +780,10 @@ b{font-weight:700}
   }
   .heartblob--sec{width:80vw;opacity:.3}
   .scallop-div{
+    /* match .sec's mobile side margins (14px 12px, fixed not auto) so the
+       divider's edges line up exactly with the rounded block above/below it
+       instead of spanning full viewport width and looking detached/wider */
+    max-width:none;width:auto;margin:0 12px;
     height:18px;
     -webkit-mask:radial-gradient(circle 11px at 50% 100%,#000 99%,transparent 100%) repeat-x left bottom/22px 18px;
             mask:radial-gradient(circle 11px at 50% 100%,#000 99%,transparent 100%) repeat-x left bottom/22px 18px;

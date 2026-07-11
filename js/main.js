@@ -204,6 +204,33 @@
     else setTimeout(fn, 60);
   }
 
+  // Pause CSS animations on decorative elements (sideflowers, cherubs, big
+  // flowers) while they're far off-screen. With ~15-30 continuously-animated,
+  // drop-shadow-filtered decor layers spread down a page ~16 viewports tall,
+  // keeping ALL of them compositing at once is a real scroll-jank source on
+  // low/mid-range phones — this cuts active work down to only what's near
+  // the viewport at any given moment.
+  var __decorIO = null;
+  function pauseOffscreenDecor(els) {
+    if (reduce || !('IntersectionObserver' in window)) {
+      // no IO support (very old browser) or reduced-motion: skip the
+      // pause/observe machinery entirely, but still flag elements as
+      // "visible" so the scroll-parallax loop keeps updating them normally.
+      (els || []).forEach(function (el) { el.dataset.decorVisible = '1'; });
+      return;
+    }
+    if (!__decorIO) {
+      __decorIO = new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) {
+          en.target.style.animationPlayState = en.isIntersecting ? 'running' : 'paused';
+          if (en.isIntersecting) en.target.dataset.decorVisible = '1';
+          else delete en.target.dataset.decorVisible;
+        });
+      }, { rootMargin: '250px 0px' });
+    }
+    (els || []).forEach(function (el) { __decorIO.observe(el); });
+  }
+
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   // key out near-WHITE (for line-art icons on white bg)
@@ -295,9 +322,11 @@
     return new Promise(function (resolve) {
       whenIdle(function () {
         var url = chromaKey(bf, 0, 0, bf.width, bf.height);
-        document.querySelectorAll('.bigflower').forEach(function (el) {
+        var bfEls = document.querySelectorAll('.bigflower');
+        bfEls.forEach(function (el) {
           el.style.backgroundImage = 'url(' + url + ')';
         });
+        pauseOffscreenDecor(Array.prototype.slice.call(bfEls));
         resolve();
       });
     });
@@ -325,7 +354,11 @@
         // spread big side-flowers down the WHOLE page (page is ~16x viewport tall),
         // alternating left/right so every section (incl. dresscode) gets large flowers
         var docVH = (document.body.scrollHeight / window.innerHeight) * 100; // total page height in vh
-        var STEP = 52;                 // vertical gap between flowers (vh) — denser coverage
+        // fewer, further-apart flowers on narrow phones: each one is an
+        // animated, drop-shadow-filtered layer, and having ~30 of them
+        // compositing at once is a real scroll-jank contributor on low/mid
+        // range Android devices (esp. inside Telegram's in-app webview).
+        var STEP = window.innerWidth < 640 ? 78 : 52; // vertical gap between flowers (vh)
         var start = 50;                // start a bit below hero
         var SPOTS = [];
         var toggle = 0;
@@ -339,6 +372,7 @@
           SPOTS.push([Math.round(ty), side, off, size, img, rot, tint]);
           toggle++;
         }
+        var flowerEls = [];
         SPOTS.forEach(function (s) {
           var el = document.createElement('div');
           el.className = 'sideflower';
@@ -354,7 +388,9 @@
             el.style.filter = 'hue-rotate(' + t.hue + 'deg) saturate(' + t.sat + ') drop-shadow(0 10px 22px rgba(42,36,29,.14))';
           }
           host.appendChild(el);
+          flowerEls.push(el);
         });
+        pauseOffscreenDecor(flowerEls);
         resolve();
       });
     });
@@ -455,6 +491,7 @@
       requestAnimationFrame(function () {
         var y = window.pageYOffset;
         document.querySelectorAll('.sideflower').forEach(function (el, i) {
+          if (!el.dataset.decorVisible) return; // paused/off-screen, skip the write
           var speed = (i % 2 === 0 ? 0.06 : -0.05) * (1 + (i % 3) * 0.3);
           el.style.setProperty('--px', (y * speed).toFixed(1) + 'px');
         });
@@ -576,6 +613,7 @@
         var elR = document.querySelector('.hero__cherub--r');
         if (elL) { elL.style.backgroundImage = 'url(' + cherubL + ')'; elL.style.backgroundSize = 'contain'; elL.style.backgroundPosition = 'center'; }
         if (elR) { elR.style.backgroundImage = 'url(' + cherubR + ')'; elR.style.backgroundSize = 'contain'; elR.style.backgroundPosition = 'center'; }
+        pauseOffscreenDecor([elL, elR].filter(Boolean));
 
         // flowers: split into pink (left) / orange (right)
         var fw = flImg.width, fh = flImg.height;
