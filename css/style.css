@@ -574,7 +574,7 @@ b{font-weight:700}
 .dc__col p{font-size:.95rem;color:#5a5145}
 /* him/her photo above each dresscode column */
 .dc__photo{width:clamp(150px,60%,210px);margin:0 auto 18px}
-.dc__photo img{aspect-ratio:3/4;filter:saturate(1.05) contrast(1.02)}
+.dc__col .dc__photo img{aspect-ratio:3/4;filter:saturate(1.05) contrast(1.02)}
 .dc__col--him .dc__photo{transform:rotate(-4deg)}
 .dc__col--her .dc__photo{transform:rotate(4deg)}
 .dc__col--him .dc__photo:hover,.dc__col--her .dc__photo:hover{transform:rotate(0) scale(1.03)}
@@ -790,6 +790,14 @@ b{font-weight:700}
   .splash__spray--blue{width:clamp(60px,24vw,100px);top:5%;left:2%}
   .splash__spray--heart{width:clamp(56px,20vw,86px);bottom:6%;right:3%}
   .sec{margin:14px 12px;padding:44px 18px;border-radius:28px}
+  /* .sec's own shorthand margin above re-sets ALL 4 sides (same specificity,
+     later in source than the unconditional .sec--fuse-above/below rules
+     earlier in this file) -> it was silently winning the cascade and
+     undoing the 0 margin needed to fuse two touching sections flush
+     against the scallop divider between them. Re-assert it here, after,
+     so fused edges actually stay flush on mobile too. */
+  .sec--fuse-below{margin-bottom:0}
+  .sec--fuse-above{margin-top:0}
   .hero{padding:64px 20px 50px}
   .hero__title{font-size:clamp(2.6rem,14vw,4.4rem)}
   .hero__cherub{width:26vw;top:8%;opacity:.7}
