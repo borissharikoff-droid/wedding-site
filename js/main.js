@@ -711,23 +711,28 @@
        forever, because it conflicts with the webview's own compositing of
        <body>. We deliberately do NOT touch body's position/layout at all.
        Instead we block scrolling purely at the event level — preventDefault()
-       on touchstart/touchmove/wheel while the splash is up, document-wide.
+       on touchmove/wheel while the splash is up, document-wide (touchstart is
+       deliberately NOT blocked — see note below, it would break the seal tap).
        This never modifies layout, so it can never get permanently "stuck".
        CSS also sets touch-action:none directly on .splash (compositor-level
        block, works even before JS attaches listeners) as a second, completely
        independent layer that needs zero cleanup. */
+    // IMPORTANT: never block 'touchstart' here — calling preventDefault() on
+    // touchstart stops mobile browsers from synthesizing the 'click' event
+    // afterwards, which silently broke tapping the seal button itself (the
+    // tap did nothing because the click handler below never fired). Blocking
+    // 'touchmove' alone is enough to stop scrolling — touchstart by itself
+    // never scrolls anything.
     function blockScroll(e) { e.preventDefault(); }
     function lockBodyScroll() {
       document.documentElement.classList.add('splash-active');
       document.body.classList.add('splash-active');
-      document.addEventListener('touchstart', blockScroll, { passive: false });
       document.addEventListener('touchmove', blockScroll, { passive: false });
       document.addEventListener('wheel', blockScroll, { passive: false });
     }
     function unlockBodyScroll() {
       document.documentElement.classList.remove('splash-active');
       document.body.classList.remove('splash-active');
-      document.removeEventListener('touchstart', blockScroll, { passive: false });
       document.removeEventListener('touchmove', blockScroll, { passive: false });
       document.removeEventListener('wheel', blockScroll, { passive: false });
       // hard-reset overflow inline as an extra safety net beyond the class
@@ -793,9 +798,10 @@
       setTimeout(markReady, Math.max(0, 300 - elapsed)); // tiny grace period so it never feels instant
     });
 
-    sealBtn.addEventListener('click', function () {
+    function activateSeal(e) {
       if (userClicked) return;
       userClicked = true;
+      if (e && e.cancelable) e.preventDefault(); // stop a duplicate synthetic 'click' from firing after 'touchend'
       splash.classList.add('open-animation');
 
       if (siteReady) {
@@ -808,7 +814,13 @@
           if (preloader) preloader.classList.add('active');
         }, 450);
       }
-    });
+    }
+    // 'touchend' fires first on real touch devices and is handled here as the
+    // primary path (with preventDefault to stop the ~300ms-later synthetic
+    // 'click' from double-firing); 'click' remains as the fallback for mouse/
+    // keyboard/any webview that doesn't fire touch events reliably.
+    sealBtn.addEventListener('touchend', activateSeal, { passive: false });
+    sealBtn.addEventListener('click', activateSeal);
 
     // safety net: never trap the guest behind the splash for more than ~8s
     setTimeout(function () {

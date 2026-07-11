@@ -28,6 +28,11 @@
   position:relative;z-index:10;
   transition:transform .3s cubic-bezier(.175,.885,.32,1.275);
   outline:none;filter:drop-shadow(0 6px 14px rgba(0,0,0,.18));
+  /* the parent .splash sets touch-action:none to block page-scroll gestures;
+     override it here to 'manipulation' so the tap on the seal itself is
+     always treated as a fast, unambiguous tap->click by the browser/webview,
+     never mistaken for the start of a blocked pan gesture. */
+  touch-action:manipulation;
 }
 .splash__seal:hover{transform:scale(1.08) rotate(-2deg)}
 .splash__seal:active{transform:scale(0.96) rotate(1deg)}
