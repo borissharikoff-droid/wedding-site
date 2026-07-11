@@ -761,23 +761,39 @@
     // tap did nothing because the click handler below never fired). Blocking
     // 'touchmove' alone is enough to stop scrolling — touchstart by itself
     // never scrolls anything.
-    function blockScroll(e) { e.preventDefault(); }
+    // NOTE: touch scrolling is blocked purely via the CSS `touch-action:none`
+    // rule on `.splash` itself (see style.css) — that needs ZERO JS cleanup,
+    // because touch-action is only evaluated on the element the touch
+    // *starts* on: once `.splash` gets `pointer-events:none` (via the
+    // `.hidden` class in finishReveal) it's no longer hit-tested at all, so
+    // touch-action stops applying automatically. We deliberately do NOT also
+    // block 'touchmove' at the document level in JS anymore — a prior
+    // version did, and a document-wide touchmove listener that fails to
+    // detach cleanly (some Telegram/Instagram in-app Android WebViews are
+    // known to mishandle removeEventListener timing during compositor
+    // transitions) was the prime suspect for guests getting permanently
+    // stuck unable to scroll after opening the envelope. Only 'wheel' still
+    // needs a JS block, because mouse-wheel-over-a-non-scrollable-overlay
+    // bubbles up to scroll the body regardless of touch-action.
+    function blockWheel(e) { e.preventDefault(); }
     function lockBodyScroll() {
       document.documentElement.classList.add('splash-active');
       document.body.classList.add('splash-active');
-      document.addEventListener('touchmove', blockScroll, { passive: false });
-      document.addEventListener('wheel', blockScroll, { passive: false });
+      document.addEventListener('wheel', blockWheel, { passive: false });
     }
     function unlockBodyScroll() {
       document.documentElement.classList.remove('splash-active');
       document.body.classList.remove('splash-active');
-      document.removeEventListener('touchmove', blockScroll, { passive: false });
-      document.removeEventListener('wheel', blockScroll, { passive: false });
+      document.removeEventListener('wheel', blockWheel, { passive: false });
       // hard-reset overflow inline as an extra safety net beyond the class
       // removal above (guards against any stray inline overflow from other
       // code paths, e.g. an interrupted lightbox open/close).
       document.documentElement.style.overflow = '';
       document.body.style.overflow = '';
+      // Belt-and-suspenders: force the CSS touch-action:none rule off via an
+      // inline style that wins regardless of specificity, in case some
+      // WebView keeps hit-testing a technically-hidden element.
+      if (splash) { splash.style.touchAction = 'auto'; splash.style.pointerEvents = 'none'; }
       // Firefox/WebKit trackpad-scroll quirk: if the seal button (now
       // display:none) keeps DOM focus, some browsers refuse to route
       // wheel/keyboard scroll until focus moves elsewhere. Explicitly blur it.
