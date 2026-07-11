@@ -691,7 +691,17 @@ b{font-weight:700}
    matches the supplied art (slightly wider than tall, ~10/9) so cover-crop
    stays minimal and never eats into the sprocket-hole border. */
 .pbframe--film{background:transparent;padding:0;box-shadow:0 10px 26px rgba(42,36,29,.22)}
-.pbframe--film img{filter:none;border-radius:8px;aspect-ratio:10/9}
+/* exact real dimensions of the supplied filmstrip photos (1280x1130) +
+   object-fit:contain (not cover) so the WHOLE photo is always shown,
+   nothing cropped off the top/bottom/sides — user explicitly asked for
+   full uncropped photos here.
+   NOTE: selector deliberately matches ".hero__photos .pbframe img"'s
+   specificity (2 classes + element) and comes after it in the file, so it
+   reliably wins the cascade — a bare ".pbframe--film img" (1 class) was
+   silently LOSING to that more-specific rule's aspect-ratio:3/4, which
+   force-cropped these photos into a tall box despite object-fit:contain. */
+.pbframe--film img,
+.hero__photos .pbframe--film img{filter:none;border-radius:8px;aspect-ratio:1280/1130;object-fit:contain}
 .pbframe--a{transform:rotate(-4deg)}
 .pbframe--b{transform:rotate(1deg) translateY(-6px)}
 .pbframe--c{transform:rotate(5deg)}
