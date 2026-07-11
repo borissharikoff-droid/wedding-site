@@ -15,14 +15,14 @@
 }
 .splash__envelope{
   position:absolute;inset:0;
-  background-image:url('../assets/photos/envelope.png');
+  background-image:url('../assets/photos/envelope.webp');
   background-size:cover;background-position:center;
   border-radius:6px;display:flex;flex-direction:column;
   align-items:center;justify-content:center;
 }
 .splash__seal{
   width:clamp(100px,25vw,140px);aspect-ratio:1/1;
-  background-image:url('../assets/photos/wax_seal.png');
+  background-image:url('../assets/photos/wax_seal.webp');
   background-size:contain;background-position:center;background-repeat:no-repeat;
   border:none;background-color:transparent;cursor:pointer;
   position:relative;z-index:10;
@@ -84,13 +84,13 @@
 .splash__spray--blue{
   width:clamp(80px,20vw,160px);aspect-ratio:626/655;
   top:9%;left:6%;transform:rotate(-10deg);
-  background-image:url('../assets/decor/spray_blue.png');
+  background-image:url('../assets/decor/spray_blue.webp');
   animation:spraySway 5.5s ease-in-out infinite;
 }
 .splash__spray--heart{
   width:clamp(74px,17vw,136px);aspect-ratio:1/1;
   bottom:10%;right:7%;transform:rotate(8deg);
-  background-image:url('../assets/decor/spray_heart.png');
+  background-image:url('../assets/decor/spray_heart.webp');
   animation:spraySway 6.5s ease-in-out infinite reverse;
 }
 @keyframes spraySway{
@@ -288,8 +288,15 @@ b{font-weight:700}
 .hero__title{
   font-family:'Unbounded',sans-serif;font-weight:800;
   text-transform:uppercase;line-height:.92;
-  font-size:clamp(3rem,17vw,7rem);
+  font-size:clamp(3rem,12vw,7rem);
   color:var(--accent);letter-spacing:-.01em;
+  /* .hero is a flex column; flex items default to min-width:auto (content-based),
+     which lets a long unbreakable word (ЖЕНИМСЯ) overflow past the hero's own
+     side padding instead of shrinking to fit — was clipping letters flush against
+     the viewport edge on narrow phones. min-width:0 lets it shrink; the wrap
+     properties are a safety net so it breaks gracefully instead of overflowing
+     if it ever still doesn't fit (very old/narrow devices, zoom, etc). */
+  min-width:0;max-width:100%;overflow-wrap:break-word;word-break:break-word;
 }
 .hero__monogram{
   font-family:'Caveat',cursive;font-size:clamp(2rem,9vw,3.4rem);
@@ -799,7 +806,7 @@ b{font-weight:700}
   .sec--fuse-below{margin-bottom:0}
   .sec--fuse-above{margin-top:0}
   .hero{padding:64px 20px 50px}
-  .hero__title{font-size:clamp(2.6rem,14vw,4.4rem)}
+  .hero__title{font-size:clamp(2.3rem,12vw,4.2rem)}
   .hero__cherub{width:26vw;top:8%;opacity:.7}
   .hero__kicker{font-size:.6rem;letter-spacing:.24em}
   .ybtn{min-width:0;flex:1 1 100%;justify-content:center}

@@ -268,7 +268,7 @@
     'ico--calendar': [0, 0], 'ico--rings':    [1, 0], 'ico--wine':  [2, 0], 'ico--envelope': [3, 0],
     'ico--stars':    [0, 1], 'ico--sparkles': [0, 1], 'ico--cheers': [1, 1], 'ico--disco': [2, 1], 'ico--cake': [3, 1]
   };
-  __assetPromises.push(loadImg('assets/icons2_raw.png?v=1').then(function (icImg) {
+  __assetPromises.push(loadImg('assets/icons2_raw.png?v=2').then(function (icImg) {
     return new Promise(function (resolve) {
       whenIdle(function () {
         var cellW = icImg.width / ICON_COLS, cellH = icImg.height / ICON_ROWS;
@@ -300,13 +300,13 @@
      anymore -> one less main-thread-blocking decode step (see pinned perf notes re: mobile
      scroll jank from heavy canvas getImageData/putImageData on the old sprite sheets). */
   var PROG_ICONS = [
-    'assets/prog_icons_v3/prog_0.png', // Велком      – welcome drink (hand + coupe glass)
-    'assets/prog_icons_v3/prog_1.png', // Первый блок – vintage mic
-    'assets/prog_icons_v3/prog_2.png', // Муз пауза   – vinyl record
-    'assets/prog_icons_v3/prog_3.png', // Второй блок – confetti popper
-    'assets/prog_icons_v3/prog_4.png', // Церемония   – wedding rings + heart
-    'assets/prog_icons_v3/prog_5.png', // Вечеринка   – clinking cocktails
-    'assets/prog_icons_v3/prog_6.png'  // Торт        – wedding cake + slice
+    'assets/prog_icons_v3/prog_0.webp', // Велком      – welcome drink (hand + coupe glass)
+    'assets/prog_icons_v3/prog_1.webp', // Первый блок – vintage mic
+    'assets/prog_icons_v3/prog_2.webp', // Муз пауза   – vinyl record
+    'assets/prog_icons_v3/prog_3.webp', // Второй блок – confetti popper
+    'assets/prog_icons_v3/prog_4.webp', // Церемония   – wedding rings + heart
+    'assets/prog_icons_v3/prog_5.webp', // Вечеринка   – clinking cocktails
+    'assets/prog_icons_v3/prog_6.webp'  // Торт        – wedding cake + slice
   ];
   document.querySelectorAll('.prog__img').forEach(function (el) {
     var idx = parseInt(el.getAttribute('data-prog'), 10);
@@ -319,7 +319,7 @@
   });
 
   /* ---------- BIG HALF-PAGE FLOWERS (green raw) ---------- */
-  __assetPromises.push(loadImg('assets/bigflower_raw.png?v=1').then(function (bf) {
+  __assetPromises.push(loadImg('assets/bigflower_raw.png?v=2').then(function (bf) {
     return new Promise(function (resolve) {
       whenIdle(function () {
         var url = chromaKey(bf, 0, 0, bf.width, bf.height);
@@ -334,7 +334,7 @@
   }).catch(function () {}));
 
   /* ---------- BIG SIDE STAR-FLOWERS scattered along the page ---------- */
-  __assetPromises.push(loadImg('assets/sideflowers_raw.png?v=1').then(function (sf) {
+  __assetPromises.push(loadImg('assets/sideflowers_raw.png?v=2').then(function (sf) {
     return new Promise(function (resolve) {
       whenIdle(function () {
         var half = sf.width / 2;
@@ -599,8 +599,8 @@
 
   /* ---------- DECOR: cherubs + petals from green raws ---------- */
   __assetPromises.push(Promise.all([
-    loadImg('assets/cherubs_raw.png?v=3'),
-    loadImg('assets/flowers_raw.png?v=3')
+    loadImg('assets/cherubs_raw.png?v=4'),
+    loadImg('assets/flowers_raw.png?v=4')
   ]).then(function (imgs) {
     return new Promise(function (resolve) {
       whenIdle(function () {
