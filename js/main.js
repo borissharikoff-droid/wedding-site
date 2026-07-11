@@ -294,34 +294,29 @@
     });
   }).catch(function () {}));
 
-  /* ---------- PROGRAM ILLUSTRATIONS (green raw, 4x2 grid) ---------- */
-  // guest item index -> [col,row] in program_raw.png
-  var PROG_CELL = [
-    [0, 0], // Велком      – welcome drink
-    [1, 0], // Первый блок – mic stage
-    [2, 0], // Муз пауза   – vinyl
-    [3, 0], // Второй блок – party popper
-    [0, 1], // Церемония   – rings
-    [1, 1], // Вечеринка   – cocktails
-    [2, 1]  // Торт        – cake
+  /* ---------- PROGRAM ILLUSTRATIONS (pre-transparent PNGs, wedding-clipart style) ----------
+     v3: replaced old green-screen-sprite + runtime chromaKey() canvas decode with plain
+     individually pre-cropped, already-transparent PNGs. No canvas work needed at all here
+     anymore -> one less main-thread-blocking decode step (see pinned perf notes re: mobile
+     scroll jank from heavy canvas getImageData/putImageData on the old sprite sheets). */
+  var PROG_ICONS = [
+    'assets/prog_icons_v3/prog_0.png', // Велком      – welcome drink (hand + coupe glass)
+    'assets/prog_icons_v3/prog_1.png', // Первый блок – vintage mic
+    'assets/prog_icons_v3/prog_2.png', // Муз пауза   – vinyl record
+    'assets/prog_icons_v3/prog_3.png', // Второй блок – confetti popper
+    'assets/prog_icons_v3/prog_4.png', // Церемония   – wedding rings + heart
+    'assets/prog_icons_v3/prog_5.png', // Вечеринка   – clinking cocktails
+    'assets/prog_icons_v3/prog_6.png'  // Торт        – wedding cake + slice
   ];
-  __assetPromises.push(loadImg('assets/program2_raw.png?v=1').then(function (pImg) {
-    return new Promise(function (resolve) {
-      whenIdle(function () {
-        var cols = 4, rows = 2;
-        var cw = pImg.width / cols, chp = pImg.height / rows;
-        var pad = cw * 0.06;
-        document.querySelectorAll('.prog__img').forEach(function (el) {
-          var idx = parseInt(el.getAttribute('data-prog'), 10);
-          var cell = PROG_CELL[idx];
-          if (!cell) return;
-          var url = chromaKey(pImg, cell[0] * cw + pad, cell[1] * chp + pad, cw - pad * 2, chp - pad * 2);
-          el.style.backgroundImage = 'url(' + url + ')';
-        });
-        resolve();
-      });
-    });
-  }).catch(function () {}));
+  document.querySelectorAll('.prog__img').forEach(function (el) {
+    var idx = parseInt(el.getAttribute('data-prog'), 10);
+    var src = PROG_ICONS[idx];
+    if (!src) return;
+    el.style.backgroundImage = 'url(' + src + ')';
+    el.style.backgroundSize = 'contain';
+    el.style.backgroundPosition = 'center';
+    el.style.backgroundRepeat = 'no-repeat';
+  });
 
   /* ---------- BIG HALF-PAGE FLOWERS (green raw) ---------- */
   __assetPromises.push(loadImg('assets/bigflower_raw.png?v=1').then(function (bf) {
