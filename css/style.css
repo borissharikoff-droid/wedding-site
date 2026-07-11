@@ -139,7 +139,17 @@ html.splash-active,body.splash-active{overflow:hidden;height:100%}
 }
 
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth;overflow-x:hidden;width:100%}
+html{overflow-x:hidden;width:100%}
+/* Smooth anchor-scrolling (used by the "Подтвердить присутствие" hero button
+   -> #rsvp) only for real mouse/trackpad input. Deliberately EXCLUDED for
+   touch devices: several Android in-app WebViews (Telegram/Instagram) have a
+   known bug where interrupting an in-progress CSS smooth-scroll animation
+   with a finger touch can leave the page's scroll state stuck/unresponsive
+   until reload. Touch users just get an instant jump instead - still works,
+   just not animated. */
+@media (hover:hover) and (pointer:fine){
+  html{scroll-behavior:smooth}
+}
 body{
   font-family:'Manrope',system-ui,sans-serif;
   background:var(--cream);
@@ -614,6 +624,7 @@ b{font-weight:700}
 }
 .sec--outro .outro__title{color:var(--accent-d)}
 .outro__title{font-family:'Unbounded';font-weight:800;text-transform:uppercase;font-size:clamp(2rem,9vw,3.4rem);color:var(--accent)}
+.outro__sub{font-family:'Caveat',cursive;font-size:1.5rem;color:var(--accent-d);margin-top:2px}
 .outro__names{font-family:'Caveat',cursive;font-size:2.2rem;color:var(--ink);margin-top:8px}
 .outro__date{letter-spacing:.2em;font-size:1rem;color:#6b4a52;margin:6px 0 26px}
 .outro__contacts{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
@@ -622,6 +633,19 @@ b{font-weight:700}
   background:#fff;padding:10px 20px;border-radius:30px;transition:transform .15s;
 }
 .outro__contacts a:hover{transform:translateY(-2px)}
+
+/* ===== TINY FOOTER FOOTNOTE (coordinator contact, separate from couple's own) ===== */
+.footnote{
+  max-width:var(--maxw);margin:0 auto;padding:16px 30px 26px;
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 10px;
+  text-align:left;font-size:.78rem;color:#9c8f7e;
+}
+.footnote__lbl{opacity:.85}
+.footnote a{color:#9c8f7e;text-decoration:underline;text-underline-offset:2px}
+.footnote a:hover{color:var(--accent-d)}
+@media(max-width:640px){
+  .footnote{padding:12px 22px 22px;font-size:.72rem}
+}
 
 /* ===== FLOATING DECOR PETALS ===== */
 .petals{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden}
