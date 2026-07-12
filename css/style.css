@@ -186,10 +186,16 @@ b{font-weight:700}
 .sec--fuse-below{margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0}
 .sec--fuse-above{margin-top:0;border-top-left-radius:0;border-top-right-radius:0}
 .scallop-div{
-  max-width:var(--maxw);margin:0 auto;height:26px;
+  /* height must equal the mask circle's radius so the scallop arc's tip
+     starts exactly at the div's top edge (flush against the section above)
+     — height was previously 26px vs a 16px radius, leaving a 10px fully
+     transparent strip at the top through which the page's body background
+     showed through, making the whole thing look like a disconnected,
+     "stuck-on" sliver instead of one continuous block. */
+  max-width:var(--maxw);margin:0 auto;height:16px;
   position:relative;z-index:2;pointer-events:none;
-  -webkit-mask:radial-gradient(circle 16px at 50% 100%,#000 99%,transparent 100%) repeat-x left bottom/32px 26px;
-          mask:radial-gradient(circle 16px at 50% 100%,#000 99%,transparent 100%) repeat-x left bottom/32px 26px;
+  -webkit-mask:radial-gradient(circle 16px at 50% 100%,#000 99%,transparent 100%) repeat-x left bottom/32px 16px;
+          mask:radial-gradient(circle 16px at 50% 100%,#000 99%,transparent 100%) repeat-x left bottom/32px 16px;
 }
 .scallop-div--wide{max-width:1080px}
 .scallop-div--cream{background:var(--cream-2)}
@@ -900,11 +906,14 @@ b{font-weight:700}
   .scallop-div{
     /* match .sec's mobile side margins (14px 12px, fixed not auto) so the
        divider's edges line up exactly with the rounded block above/below it
-       instead of spanning full viewport width and looking detached/wider */
+       instead of spanning full viewport width and looking detached/wider.
+       height also must equal the mask circle's radius (11px) — it was 18px,
+       leaving a 7px transparent gap at the top showing the body bg through,
+       same "detached sliver" bug as the desktop version above. */
     max-width:none;width:auto;margin:0 12px;
-    height:18px;
-    -webkit-mask:radial-gradient(circle 11px at 50% 100%,#000 99%,transparent 100%) repeat-x left bottom/22px 18px;
-            mask:radial-gradient(circle 11px at 50% 100%,#000 99%,transparent 100%) repeat-x left bottom/22px 18px;
+    height:11px;
+    -webkit-mask:radial-gradient(circle 11px at 50% 100%,#000 99%,transparent 100%) repeat-x left bottom/22px 11px;
+            mask:radial-gradient(circle 11px at 50% 100%,#000 99%,transparent 100%) repeat-x left bottom/22px 11px;
   }
 }
 @media(max-width:420px){
