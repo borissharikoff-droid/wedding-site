@@ -890,7 +890,7 @@ b{font-weight:700}
      this file) -> it was silently winning the cascade and undoing the 0
      margin needed to keep a section's own fringe flush against its bottom
      edge. Re-assert it here, after, so the fringe stays flush on mobile too. */
-  .sec--fuse-below{margin-bottom:0}
+  .sec--fuse-below{margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0}
   .hero{padding:64px 20px 50px}
   .hero__title{font-size:clamp(2.3rem,12vw,4.2rem)}
   .hero__cherub{width:26vw;top:8%;opacity:.7}
