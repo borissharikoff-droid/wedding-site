@@ -499,27 +499,16 @@
   // pseudo on the section) guarantees it's never clipped by a section's own
   // `overflow:hidden` (needed e.g. for the heart-blob decor on accent/pink
   // sections). Width is matched to the LOWER section (sec--wide -> wide).
-  (function scallops() {
-    var secs = Array.prototype.slice.call(document.querySelectorAll('main > .sec'));
-    var prevBg = 'cream';
-    var prevEl = null;
-    secs.forEach(function (s) {
-      var bg = s.classList.contains('sec--accent') ? 'accent'
-             : s.classList.contains('sec--pink') ? 'pink'
-             : s.classList.contains('sec--outro') ? 'outro' : 'cream';
-      if (bg !== prevBg && prevEl) {
-        prevEl.classList.add('sec--fuse-below');
-        s.classList.add('sec--fuse-above');
-        var div = document.createElement('div');
-        div.className = 'scallop-div scallop-div--' + bg;
-        if (s.classList.contains('sec--wide')) div.classList.add('scallop-div--wide');
-        div.setAttribute('aria-hidden', 'true');
-        s.parentNode.insertBefore(div, s);
-      }
-      prevBg = bg;
-      prevEl = s;
-    });
-  })();
+  // NOTE: sections used to be visually "fused" together (flush, 0 margin,
+  // square shared edge) via a tiny scalloped connector div whenever two
+  // adjacent sections shared a background color-family. Repeated user
+  // feedback was that this reads as broken/glued-together blocks (a stray
+  // rendering timing gap made the connector look detached, and even once
+  // fixed it still looked "stuck" rather than intentional). Removed the
+  // whole fuse/scallop-insertion step — every .sec now simply keeps its own
+  // full border-radius and margin (see .sec margin in style.css) so blocks
+  // always read as clearly separate, evenly-spaced cards.
+  (function scallops() { /* intentionally disabled — see note above */ })();
 
   (function reveal() {
     var secs = document.querySelectorAll('main .sec, .hero__photos');
