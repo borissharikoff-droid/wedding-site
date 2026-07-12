@@ -152,6 +152,26 @@
     });
   }
 
+  // Visibly highlight whichever "буду / не буду" option is selected — the
+  // native radio dot alone is white-on-white here (see .opt.is-checked in
+  // style.css) and was effectively invisible, so guests had no idea their
+  // tap registered. Toggling a class in JS (rather than relying only on the
+  // CSS `:has()` selector) keeps this working even in older in-app WebViews
+  // (Telegram/Instagram Android) that may lack `:has()` support.
+  function syncAttendOptionStyles() {
+    if (!form) return;
+    var radios = form.querySelectorAll('input[name="attend"]');
+    for (var i = 0; i < radios.length; i++) {
+      var label = radios[i].closest('.opt');
+      if (label) label.classList.toggle('is-checked', radios[i].checked);
+    }
+  }
+  if (form) {
+    form.querySelectorAll('input[name="attend"]').forEach(function (r) {
+      r.addEventListener('change', syncAttendOptionStyles);
+    });
+  }
+
   if (form) {
     // prefill if already submitted, otherwise show mock demo values
     try {
@@ -167,6 +187,7 @@
       }
       // no mock prefill — empty fields show placeholders only
     } catch (e) {}
+    syncAttendOptionStyles(); // reflect any prefilled choice immediately on load
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();

@@ -601,10 +601,31 @@ b{font-weight:700}
 .opt{
   display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.14);
   border:2px solid rgba(255,255,255,.4);border-radius:14px;padding:13px 16px;cursor:pointer;
-  color:#fff;font-weight:600;transition:background .15s;
+  color:#fff;font-weight:600;
+  transition:background .15s,border-color .15s,color .15s,transform .15s,box-shadow .15s;
 }
 .opt:hover{background:rgba(255,255,255,.24)}
-.opt input{accent-color:#fff;width:18px;height:18px}
+.opt input{accent-color:#fff;width:18px;height:18px;flex:none}
+/* SELECTED STATE — previously the only feedback was the tiny native radio
+   dot, which is white-on-white here (accent-color:#fff, painted on a
+   translucent white card) and effectively invisible → guests couldn't tell
+   which option was picked. Now the whole option card flips to solid white
+   with a checkmark badge, matching the site's existing "white card on
+   accent background" language (venue card, submit button), so the choice is
+   unmistakable at a glance. `.is-checked` is toggled by JS (main.js) instead
+   of relying purely on `:has()` so it also works in older in-app WebViews
+   (Telegram/Instagram Android) that may not support `:has()` yet. */
+.opt.is-checked{
+  background:#fff;border-color:#fff;color:var(--accent-d);
+  box-shadow:0 10px 26px rgba(42,36,29,.18);
+}
+.opt.is-checked input{accent-color:var(--accent-d)}
+.opt__check{
+  flex:none;width:22px;height:22px;border-radius:50%;margin-left:auto;
+  display:none;place-items:center;background:var(--accent-d);color:#fff;
+  font-size:.8rem;line-height:1;
+}
+.opt.is-checked .opt__check{display:grid}
 .rsvp__submit{margin-top:6px;align-self:stretch;text-align:center}
 .rsvp__note{min-height:1.2em;font-weight:700;color:#fff;text-align:center}
 .rsvp__note.ok{color:#fff}
