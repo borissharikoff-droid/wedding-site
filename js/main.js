@@ -96,6 +96,25 @@
     });
   }
 
+  /* ---------- TOAST (polished popup shown on top of the inline .rsvp__note) ---------- */
+  var toastEl = document.getElementById('toast');
+  var toastTitleEl = document.getElementById('toastTitle');
+  var toastMsgEl = document.getElementById('toastMsg');
+  var toastCloseBtn = document.getElementById('toastClose');
+  var toastTimer = null;
+  function showToast(type, title, msg) {
+    if (!toastEl) return;
+    toastEl.className = 'toast show toast--' + type;
+    if (toastTitleEl) toastTitleEl.textContent = title;
+    if (toastMsgEl) toastMsgEl.textContent = msg;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(hideToast, 4200);
+  }
+  function hideToast() {
+    if (toastEl) toastEl.classList.remove('show');
+  }
+  if (toastCloseBtn) toastCloseBtn.addEventListener('click', hideToast);
+
   /* ---------- RSVP FORM ---------- */
   var form = document.getElementById('rsvpForm');
   var note = document.getElementById('rsvpNote');
@@ -192,6 +211,9 @@
             ? 'Ура! Спасибо, ждём вас 8 сентября ♥'
             : 'Спасибо, что дали знать. Будем скучать!';
           submitBtn.textContent = 'Обновить ответ';
+          showToast('ok',
+            attendEl.value === 'yes' ? 'Анкета отправлена ♥' : 'Анкета отправлена',
+            attendEl.value === 'yes' ? 'Ура! Ждём вас 8 сентября.' : 'Спасибо, что дали знать — будем скучать!');
         } else if (result.errors.indexOf('network') !== -1) {
           // couldn't reach the server (offline / API down) — still save
           // locally so the answer isn't lost, but be upfront that the
@@ -201,6 +223,7 @@
           note.className = 'rsvp__note err';
           note.textContent = 'Не получилось отправить — проверь интернет и попробуй ещё раз. Если не выйдет, напиши нам в Telegram!';
           submitBtn.textContent = prevBtnText;
+          showToast('err', 'Не получилось отправить', 'Сохранили в этом браузере — попробуй ещё раз, когда будет интернет.');
         } else {
           note.className = 'rsvp__note err';
           note.textContent = 'Ой, что-то не заполнено — глянь ещё разок.';

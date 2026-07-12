@@ -14,7 +14,7 @@
      the splash never sits there blank while guests wait to see the envelope -->
 <link rel="preload" as="image" href="assets/photos/envelope.webp" fetchpriority="high">
 <link rel="preload" as="image" href="assets/photos/wax_seal.webp" fetchpriority="high">
-<link rel="stylesheet" href="css/style.css?v=34">
+<link rel="stylesheet" href="css/style.css?v=35">
 </head>
 <body>
 
@@ -325,6 +325,21 @@
   <a href="https://t.me/yubudaevva" target="_blank" rel="noopener">@yubudaevva</a>
 </footer>
 
+<!-- polished toast popup: shown on RSVP submit success/failure, on top of
+     the inline .rsvp__note (which stays as the accessible always-visible
+     status text) — this is the "wow" confirmation moment for the guest -->
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span class="toast__icon" aria-hidden="true">
+    <svg class="toast__icon-ok" viewBox="0 0 24 24" fill="none"><path d="M5 13l4 4L19 7" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <svg class="toast__icon-err" viewBox="0 0 24 24" fill="none"><path d="M12 7.5v6" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="16.6" r="1.15" fill="#fff"/><circle cx="12" cy="12" r="9" stroke="#fff" stroke-width="1.6"/></svg>
+  </span>
+  <div class="toast__body">
+    <strong class="toast__title" id="toastTitle"></strong>
+    <span class="toast__msg" id="toastMsg"></span>
+  </div>
+  <button class="toast__close" id="toastClose" type="button" aria-label="Закрыть уведомление">×</button>
+</div>
+
 <!-- lightbox overlay -->
 <div class="lightbox" id="lightbox" aria-hidden="true" role="dialog" aria-label="Просмотр фото">
   <button class="lightbox__close" id="lbClose" aria-label="Закрыть">×</button>
@@ -333,6 +348,6 @@
   <button class="lightbox__nav lightbox__nav--next" id="lbNext" aria-label="Следующее">›</button>
 </div>
 
-<script src="js/main.js?v=24"></script>
+<script src="js/main.js?v=25"></script>
 </body>
 </html>
