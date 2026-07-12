@@ -615,15 +615,13 @@ b{font-weight:700}
    collages are tall portraits of varying ratio, so DON'T force a fixed
    aspect-ratio/cover-crop. Keep natural ratio; taped polaroid frame hugs it.
    margin auto + block centering keeps it dead-center under the heading. */
-.dc__photo{width:clamp(230px,90%,340px);margin:0 auto 20px}
-/* both moodboards share the same display height so the two columns line up
-   (palette + text start at the same vertical level). object-fit:contain keeps
-   each collage fully visible & centered inside that fixed height, no crop. */
-.dc__col .dc__photo img{height:520px;object-fit:contain;filter:saturate(1.03) contrast(1.02)}
-@media(max-width:900px){
-  /* stacked single-column layout — let each photo use its natural height */
-  .dc__col .dc__photo img{height:auto}
-}
+/* each column now holds TWO stacked moodboards; this wrapper spaces them
+   evenly and keeps them centered under the heading */
+.dc__photos{display:flex;flex-direction:column;align-items:center;gap:22px;margin:0 auto 20px}
+.dc__photo{width:clamp(230px,90%,340px);margin:0}
+/* keep each collage fully visible at its natural ratio (no fixed height /
+   crop) — the taped polaroid frame hugs whatever ratio the image has */
+.dc__col .dc__photo img{height:auto;filter:saturate(1.03) contrast(1.02)}
 
 /* compact palette that lives INSIDE a dresscode column — 6 swatches in one
    centered row per gender, separate from the old full-width single palette */
