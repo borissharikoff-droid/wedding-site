@@ -904,7 +904,7 @@
 
     function finishReveal() {
       splash.classList.add('hidden');
-      unlockBodyScroll();
+      unlockBodyScroll(); // idempotent safety-net re-call, see activateSeal below
       setTimeout(function () {
         if (splash) splash.style.display = 'none';
       }, 850);
@@ -932,6 +932,23 @@
       userClicked = true;
       if (e && e.cancelable) e.preventDefault(); // stop a duplicate synthetic 'click' from firing after 'touchend'
       splash.classList.add('open-animation');
+
+      // MOBILE FIX: unlock scroll/touch RIGHT NOW, at tap-time, instead of
+      // waiting for the ~550ms opening animation to finish (that used to
+      // happen only inside finishReveal). Reason: touch-action is decided
+      // once per gesture, at touchstart, and never re-evaluated mid-gesture.
+      // A guest who taps the seal and then almost immediately swipes down
+      // (very common - people tap then instantly try to scroll) generates a
+      // NEW touchstart that, while the splash overlay was still sitting on
+      // top with touch-action:none, got permanently marked as "blocked" for
+      // its whole duration - so that first swipe silently did nothing, and
+      // only a second, later swipe (once the overlay had pointer-events:none)
+      // actually scrolled. That's exactly the "not from the first try"
+      // scrolling bug on phones. Making the overlay stop intercepting touches
+      // immediately (it's still visible/opaque and fading out purely
+      // visually) means ANY swipe from this point on reaches the real page
+      // and scrolls right away, first try.
+      unlockBodyScroll();
 
       if (siteReady) {
         // let the envelope-opening animation play, then reveal the site
