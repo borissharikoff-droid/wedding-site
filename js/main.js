@@ -101,12 +101,36 @@
   var note = document.getElementById('rsvpNote');
   var DEADLINE = new Date('2026-08-08T23:59:59+03:00').getTime();
 
-  function saveRsvp(data) {
+  // Backend API — submissions are stored server-side in Postgres (Railway),
+  // so the couple can actually see the guest list (previously this only
+  // lived in each guest's own browser localStorage and was never collected
+  // anywhere). See server/index.js for the API implementation.
+  var RSVP_API_URL = 'https://wedding-rsvp-api-production-d474.up.railway.app/api/rsvp';
+
+  // localStorage is kept ONLY as a same-browser cache so the form can
+  // prefill "you already answered" on a repeat visit, and as an offline
+  // fallback if the request to the server fails (network down etc).
+  function cacheRsvpLocally(data) {
     try {
       var list = JSON.parse(localStorage.getItem('rsvp_list') || '[]');
       list.push(data);
       localStorage.setItem('rsvp_list', JSON.stringify(list));
     } catch (e) { /* storage may be blocked */ }
+  }
+
+  // POST to the backend. Returns a promise that resolves with {ok, errors}.
+  function submitRsvpToServer(data) {
+    return fetch(RSVP_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    }).then(function (res) {
+      return res.json().then(function (json) {
+        return { ok: res.ok && json.ok, errors: json.errors || [] };
+      });
+    }).catch(function () {
+      return { ok: false, errors: ['network'] };
+    });
   }
 
   if (form) {
@@ -148,14 +172,41 @@
         attend: attendEl.value,
         ts: new Date().toISOString()
       };
-      saveRsvp(data);
-      localStorage.setItem('rsvp_mine', JSON.stringify(data));
 
-      note.className = 'rsvp__note ok';
-      note.textContent = attendEl.value === 'yes'
-        ? 'Ура! Спасибо, ждём вас 8 сентября ♥'
-        : 'Спасибо, что дали знать. Будем скучать!';
-      form.querySelector('.rsvp__submit').textContent = 'Обновить ответ';
+      var submitBtn = form.querySelector('.rsvp__submit');
+      var prevBtnText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Отправляем…';
+      note.className = 'rsvp__note';
+      note.textContent = '';
+
+      submitRsvpToServer(data).then(function (result) {
+        submitBtn.disabled = false;
+        if (result.ok) {
+          // server has it now — cache locally too, purely so this browser
+          // can prefill the form as "already answered" on a repeat visit
+          cacheRsvpLocally(data);
+          localStorage.setItem('rsvp_mine', JSON.stringify(data));
+          note.className = 'rsvp__note ok';
+          note.textContent = attendEl.value === 'yes'
+            ? 'Ура! Спасибо, ждём вас 8 сентября ♥'
+            : 'Спасибо, что дали знать. Будем скучать!';
+          submitBtn.textContent = 'Обновить ответ';
+        } else if (result.errors.indexOf('network') !== -1) {
+          // couldn't reach the server (offline / API down) — still save
+          // locally so the answer isn't lost, but be upfront that the
+          // organizers won't see it until the guest retries with connection.
+          cacheRsvpLocally(data);
+          localStorage.setItem('rsvp_mine', JSON.stringify(data));
+          note.className = 'rsvp__note err';
+          note.textContent = 'Не получилось отправить — проверь интернет и попробуй ещё раз. Если не выйдет, напиши нам в Telegram!';
+          submitBtn.textContent = prevBtnText;
+        } else {
+          note.className = 'rsvp__note err';
+          note.textContent = 'Ой, что-то не заполнено — глянь ещё разок.';
+          submitBtn.textContent = prevBtnText;
+        }
+      });
     });
   }
 

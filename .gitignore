@@ -1,3 +1,5 @@
 .quadcodeai/
 .temp/
 .quadcodeai/.data/chats/
+server/node_modules/
+server/.env
