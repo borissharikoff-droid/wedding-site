@@ -590,16 +590,27 @@ b{font-weight:700}
   font-size:.56rem;letter-spacing:.01em;color:#9a8f80;white-space:nowrap;
   font-weight:600;pointer-events:none;line-height:1.2;
 }
-.dc__cols{display:flex;gap:22px;flex-wrap:wrap;justify-content:center;margin-top:20px}
+.dc__cols{display:flex;gap:22px;flex-wrap:wrap;justify-content:center;align-items:flex-start;margin-top:20px}
 .dc__col{
-  flex:1 1 240px;background:#fff;border-radius:24px;padding:24px 22px;
+  flex:1 1 300px;max-width:440px;background:#fff;border-radius:24px;padding:24px 22px;
   border:2px solid var(--pink-soft);text-align:center;
 }
-.dc__h{font-family:'Unbounded',sans-serif;text-transform:uppercase;font-size:.9rem;color:var(--accent);margin-bottom:10px;letter-spacing:.05em}
+.dc__h{font-family:'Unbounded',sans-serif;text-transform:uppercase;font-size:.9rem;color:var(--accent);margin:0 0 16px;letter-spacing:.05em}
 .dc__col p{font-size:.95rem;color:#5a5145}
-/* him/her photo above each dresscode column */
-.dc__photo{width:clamp(200px,78%,290px);margin:0 auto 18px}
-.dc__col .dc__photo img{aspect-ratio:3/4;filter:saturate(1.05) contrast(1.02)}
+/* him/her moodboard photo above each dresscode column — user-supplied
+   collages are tall portraits of varying ratio, so DON'T force a fixed
+   aspect-ratio/cover-crop (that chopped off heads/looks). Let the image keep
+   its own natural ratio; the taped polaroid frame hugs it. */
+.dc__photo{width:clamp(220px,82%,320px);margin:0 auto 18px}
+.dc__col .dc__photo img{height:auto;filter:saturate(1.03) contrast(1.02)}
+
+/* compact palette that lives INSIDE a dresscode column (its own row of
+   swatches per gender), separate from the old full-width single palette */
+.palette--dc{margin:0 auto 18px;max-width:100%;gap:0}
+.palette--dc .palette__chips{column-gap:9px;row-gap:26px}
+.palette--dc .palette__chips i{
+  flex:0 0 calc((100% - 9px*5)/6);border-radius:12px;
+}
 .dc__col--him .dc__photo{transform:rotate(-4deg)}
 .dc__col--her .dc__photo{transform:rotate(4deg)}
 .dc__col--him .dc__photo:hover,.dc__col--her .dc__photo:hover{transform:rotate(0) scale(1.03)}
@@ -912,6 +923,10 @@ b{font-weight:700}
      enough for the caption label so it never gets covered by the next row */
   .palette__chips{column-gap:8px;row-gap:30px}
   .palette__chips i{flex-basis:calc((100% - 8px*3)/4);border-radius:12px}
+  /* dresscode palettes keep all swatches in one row (6/7) even on mobile —
+     they're small chips inside a narrow column, 4-per-row would wrap ugly */
+  .palette--dc .palette__chips{column-gap:6px;row-gap:22px}
+  .palette--dc .palette__chips i{flex-basis:calc((100% - 6px*5)/6);border-radius:9px}
   /* side flowers: dimmer + smaller */
   .sideflower{opacity:.5}
   .taped::before,.taped::after{width:56px;height:20px}
