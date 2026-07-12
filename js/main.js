@@ -493,25 +493,6 @@
   }).catch(function () {}));
 
   /* ---------- REVEAL ON SCROLL ---------- */
-  (function reveal() {
-    var secs = document.querySelectorAll('main .sec, .hero__photos');
-    secs.forEach(function (s) { if (!s.classList.contains('hero__photos')) s.classList.add('reveal'); });
-    var prog = document.querySelector('.program'); if (prog) prog.classList.add('reveal-stagger');
-    var gal = document.querySelector('.venue__gallery'); if (gal) gal.classList.add('reveal-stagger');
-    var hp = document.querySelector('.hero__photos'); if (hp) hp.classList.add('reveal-stagger', 'in');
-
-    if (reduce || !('IntersectionObserver' in window)) {
-      document.querySelectorAll('.reveal,.reveal-stagger').forEach(function (e) { e.classList.add('in'); });
-      return;
-    }
-    var io = new IntersectionObserver(function (entries) {
-      entries.forEach(function (en) {
-        if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
-      });
-    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
-    document.querySelectorAll('.reveal,.reveal-stagger').forEach(function (e) { io.observe(e); });
-  })();
-
   /* ---------- SCALLOP SEPARATORS (smooth block transitions) ---------- */
   // Insert a real scalloped divider <div> between any two adjacent sections
   // whose background differs. Using a real sibling element (not a ::before
@@ -539,6 +520,55 @@
       prevEl = s;
     });
   })();
+
+  (function reveal() {
+    var secs = document.querySelectorAll('main .sec, .hero__photos');
+    secs.forEach(function (s) { if (!s.classList.contains('hero__photos')) s.classList.add('reveal'); });
+    var prog = document.querySelector('.program'); if (prog) prog.classList.add('reveal-stagger');
+    var gal = document.querySelector('.venue__gallery'); if (gal) gal.classList.add('reveal-stagger');
+    var hp = document.querySelector('.hero__photos'); if (hp) hp.classList.add('reveal-stagger', 'in');
+
+    // The scalloped divider between two sections (already inserted by the
+    // scallops() step above, which now deliberately runs BEFORE this so the
+    // divs exist here) must fade in/out in perfect lockstep with the SECTION
+    // IT INTRODUCES — never on its own independent timer. It's only ~11-16px
+    // tall, so on its own it would cross the 12%-visible IntersectionObserver
+    // threshold almost the instant its top edge scrolls into view (a sliver
+    // that small reads as "12% visible" after just a couple of pixels),
+    // long before the much taller section below it reaches that same 12%
+    // mark. That timing mismatch used to make the colored scallop bar pop in
+    // fully-opaque and just sit there alone against the plain page
+    // background while the section it belongs to was still fading/sliding in
+    // beneath it — exactly the "top decorative part renders separately from
+    // the bottom part" glitch reported on mobile. Fix: give it the same
+    // .reveal opacity/transform treatment, but never observe it
+    // independently (see the io.observe selector below) — instead flip it to
+    // .in in the exact same animation frame as the section it precedes, via
+    // a previousElementSibling lookup inside that section's own IO entry.
+    document.querySelectorAll('.scallop-div').forEach(function (d) { d.classList.add('reveal'); });
+
+    if (reduce || !('IntersectionObserver' in window)) {
+      document.querySelectorAll('.reveal,.reveal-stagger').forEach(function (e) { e.classList.add('in'); });
+      return;
+    }
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) {
+          en.target.classList.add('in');
+          // pull the preceding scallop divider (if any) along with it, same frame
+          var prevSib = en.target.previousElementSibling;
+          if (prevSib && prevSib.classList.contains('scallop-div')) prevSib.classList.add('in');
+          io.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+    // scallop-div elements are deliberately excluded from the observed set
+    // (see comment above) — only real sections/stagger groups get their own
+    // trigger; scallops piggyback on their neighbor's trigger instead.
+    document.querySelectorAll('.reveal:not(.scallop-div),.reveal-stagger').forEach(function (e) { io.observe(e); });
+  })();
+
+
 
   /* ---------- PROGRAM TIMELINE: scroll-draw line + parallax steps ---------- */
   (function programLine() {
