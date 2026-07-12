@@ -815,8 +815,20 @@ b{font-weight:700}
 .hero__photos .pbframe:hover{transform:rotate(0) translateY(-6px) scale(1.03);z-index:3}
 
 /* ===== REVEAL ON SCROLL ===== */
-.reveal{opacity:0;transform:translateY(34px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
-.reveal.in{opacity:1;transform:none}
+/* Deliberately fade-only (NO translateY slide) — a vertical slide-up looked
+   fine for a lone section, but every section here is glued flush to a tiny
+   ~16px scallop-div connector directly above it (see .scallop-div). While a
+   section sat at its pre-reveal transform:translateY(34px) (shifted DOWN
+   34px from its true spot) its layout BOX was still reserved at the true
+   (un-shifted) position — so a 34px strip of plain page background showed
+   through right under the always-solid-colored scallop bar, right up until
+   the reveal finished and the block "snapped" up into place. That's exactly
+   the "top scallop renders detached from the block below it" bug. Fading
+   opacity only, with the box always sitting in its final position from
+   frame one, means the section's own background colour simply ramps in
+   underneath the scallop with zero positional gap at any point mid-animation. */
+.reveal{opacity:0;transition:opacity .7s ease}
+.reveal.in{opacity:1}
 .reveal-stagger>*{opacity:0;transform:translateY(24px);transition:opacity .55s ease,transform .55s ease}
 .reveal-stagger.in>*{opacity:1;transform:none}
 .reveal-stagger.in>*:nth-child(2){transition-delay:.07s}
