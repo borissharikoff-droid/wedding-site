@@ -508,27 +508,11 @@
   // the next card. Because the strip is a permanent child of its own
   // section (not conditionally inserted based on a neighbor's color), it
   // can never desync from that section during the reveal animation either.
-  (function scallops() {
-    var secs = Array.prototype.slice.call(document.querySelectorAll('main > .sec'));
-    secs.forEach(function (s) {
-      // Only COLORED sections (pink / accent / outro) get a fringe: on those
-      // the scalloped hem sits against the cream page background and reads as
-      // a clear, deliberate decorative edge. A cream fringe on the cream page
-      // bg is practically invisible and just looked like a stray, crooked
-      // floating strip — so cream sections keep their normal rounded card
-      // shape with no fringe at all.
-      var bg = s.classList.contains('sec--accent') ? 'accent'
-             : s.classList.contains('sec--pink') ? 'pink'
-             : s.classList.contains('sec--outro') ? 'outro' : null;
-      if (!bg) return; // cream section -> no fringe
-      s.classList.add('sec--fuse-below'); // flatten bottom corners + kill this section's own bottom margin
-      var div = document.createElement('div');
-      div.className = 'scallop-div scallop-div--' + bg;
-      if (s.classList.contains('sec--wide')) div.classList.add('scallop-div--wide');
-      div.setAttribute('aria-hidden', 'true');
-      s.parentNode.insertBefore(div, s.nextSibling); // insert right after s, still inside <main>
-    });
-  })();
+  // Scalloped fringe/hem fully removed per user request — every .sec now just
+  // keeps its own rounded-card shape with normal margins (no decorative strip
+  // between blocks at all). Left as a no-op so the reveal() code below that
+  // looks for `.scallop-div` siblings simply never finds any.
+  (function scallops() { /* intentionally disabled — fringe removed */ })();
 
   (function reveal() {
     var secs = document.querySelectorAll('main .sec, .hero__photos');
