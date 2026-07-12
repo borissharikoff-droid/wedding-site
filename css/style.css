@@ -198,8 +198,16 @@ b{font-weight:700}
      "stuck-on" sliver instead of one continuous block. */
   max-width:var(--maxw);margin:0 auto;height:16px;
   position:relative;z-index:2;pointer-events:none;
-  -webkit-mask:radial-gradient(circle 16px at 50% 100%,#000 99%,transparent 100%) repeat-x left bottom/32px 16px;
-          mask:radial-gradient(circle 16px at 50% 100%,#000 99%,transparent 100%) repeat-x left bottom/32px 16px;
+  /* INVERTED mask: the strip is a solid colored bar whose TOP edge is fully
+     opaque (welded flush to the section above it), and we SUBTRACT a row of
+     half-circles from its BOTTOM edge so scalloped festoons hang downward.
+     The previous mask did the opposite (circles centered on the bottom,
+     opaque INSIDE them) which left sharp transparent wedges between adjacent
+     arcs along the TOP edge — the page's cream bg showed through those
+     wedges, making the hem look like a detached, floating serrated strip.
+     Solid-top + notched-bottom reads as one continuous, intentional hem. */
+  -webkit-mask:radial-gradient(circle 16px at 50% 0,transparent 99%,#000 100%) repeat-x left top/32px 16px;
+          mask:radial-gradient(circle 16px at 50% 0,transparent 99%,#000 100%) repeat-x left top/32px 16px;
 }
 .scallop-div--wide{max-width:1080px}
 .scallop-div--cream{background:var(--cream-2)}
@@ -924,10 +932,13 @@ b{font-weight:700}
        height also must equal the mask circle's radius (11px) — it was 18px,
        leaving a 7px transparent gap at the top showing the body bg through,
        same "detached sliver" bug as the desktop version above. */
-    max-width:none;width:auto;margin:0 12px;
+    max-width:none;width:auto;margin:0 14px;
     height:11px;
-    -webkit-mask:radial-gradient(circle 11px at 50% 100%,#000 99%,transparent 100%) repeat-x left bottom/22px 11px;
-            mask:radial-gradient(circle 11px at 50% 100%,#000 99%,transparent 100%) repeat-x left bottom/22px 11px;
+    /* same inverted (solid-top, festoons-hang-down) mask as desktop, scaled
+       to the mobile radius; margin matches .sec's 14px mobile side inset so
+       the hem lines up exactly under the rounded block above it. */
+    -webkit-mask:radial-gradient(circle 11px at 50% 0,transparent 99%,#000 100%) repeat-x left top/22px 11px;
+            mask:radial-gradient(circle 11px at 50% 0,transparent 99%,#000 100%) repeat-x left top/22px 11px;
   }
 }
 @media(max-width:420px){
