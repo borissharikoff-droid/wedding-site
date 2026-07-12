@@ -493,22 +493,35 @@
   }).catch(function () {}));
 
   /* ---------- REVEAL ON SCROLL ---------- */
-  /* ---------- SCALLOP SEPARATORS (smooth block transitions) ---------- */
-  // Insert a real scalloped divider <div> between any two adjacent sections
-  // whose background differs. Using a real sibling element (not a ::before
-  // pseudo on the section) guarantees it's never clipped by a section's own
-  // `overflow:hidden` (needed e.g. for the heart-blob decor on accent/pink
-  // sections). Width is matched to the LOWER section (sec--wide -> wide).
-  // NOTE: sections used to be visually "fused" together (flush, 0 margin,
-  // square shared edge) via a tiny scalloped connector div whenever two
-  // adjacent sections shared a background color-family. Repeated user
-  // feedback was that this reads as broken/glued-together blocks (a stray
-  // rendering timing gap made the connector look detached, and even once
-  // fixed it still looked "stuck" rather than intentional). Removed the
-  // whole fuse/scallop-insertion step — every .sec now simply keeps its own
-  // full border-radius and margin (see .sec margin in style.css) so blocks
-  // always read as clearly separate, evenly-spaced cards.
-  (function scallops() { /* intentionally disabled — see note above */ })();
+  /* ---------- SCALLOP FRINGE (decorative macrame-style hem) ---------- */
+  // Every .sec gets its own trailing scalloped "fringe" strip glued flush to
+  // ITS OWN bottom edge (own color, own section — never coupled to whatever
+  // comes next). This is different from the old design (removed earlier)
+  // where a connector div was inserted only between two DIFFERENT-colored
+  // sections and literally fused them together with zero gap — that read as
+  // "blocks glued together" once spacing was increased. Here the fringe is
+  // purely a decoration OWNED by the section above it: we flatten that
+  // section's own bottom corners + zero its own bottom margin (so the strip
+  // sits flush, no gap, no seam), then let the NEXT section keep its normal
+  // full border-radius + full margin-top untouched — that margin is exactly
+  // what creates the clear, unambiguous gap between one card's fringe and
+  // the next card. Because the strip is a permanent child of its own
+  // section (not conditionally inserted based on a neighbor's color), it
+  // can never desync from that section during the reveal animation either.
+  (function scallops() {
+    var secs = Array.prototype.slice.call(document.querySelectorAll('main > .sec'));
+    secs.forEach(function (s) {
+      var bg = s.classList.contains('sec--accent') ? 'accent'
+             : s.classList.contains('sec--pink') ? 'pink'
+             : s.classList.contains('sec--outro') ? 'outro' : 'cream';
+      s.classList.add('sec--fuse-below'); // flatten bottom corners + kill this section's own bottom margin
+      var div = document.createElement('div');
+      div.className = 'scallop-div scallop-div--' + bg;
+      if (s.classList.contains('sec--wide')) div.classList.add('scallop-div--wide');
+      div.setAttribute('aria-hidden', 'true');
+      s.parentNode.insertBefore(div, s.nextSibling); // insert right after s, still inside <main>
+    });
+  })();
 
   (function reveal() {
     var secs = document.querySelectorAll('main .sec, .hero__photos');
@@ -517,23 +530,21 @@
     var gal = document.querySelector('.venue__gallery'); if (gal) gal.classList.add('reveal-stagger');
     var hp = document.querySelector('.hero__photos'); if (hp) hp.classList.add('reveal-stagger', 'in');
 
-    // The scalloped divider between two sections (already inserted by the
-    // scallops() step above, which now deliberately runs BEFORE this so the
-    // divs exist here) must fade in/out in perfect lockstep with the SECTION
-    // IT INTRODUCES — never on its own independent timer. It's only ~11-16px
-    // tall, so on its own it would cross the 12%-visible IntersectionObserver
-    // threshold almost the instant its top edge scrolls into view (a sliver
-    // that small reads as "12% visible" after just a couple of pixels),
-    // long before the much taller section below it reaches that same 12%
-    // mark. That timing mismatch used to make the colored scallop bar pop in
-    // fully-opaque and just sit there alone against the plain page
-    // background while the section it belongs to was still fading/sliding in
-    // beneath it — exactly the "top decorative part renders separately from
-    // the bottom part" glitch reported on mobile. Fix: give it the same
-    // .reveal opacity/transform treatment, but never observe it
+    // The scalloped fringe strip is now a PERMANENT child of its own section
+    // (appended right after it in the DOM by scallops() above, which runs
+    // before this so the divs already exist here) — it must fade in/out in
+    // perfect lockstep with the section it's attached to, never on its own
+    // independent timer. It's only ~11-16px tall, so on its own it would
+    // cross the 12%-visible IntersectionObserver threshold almost the
+    // instant its top edge scrolls into view (a sliver that small reads as
+    // "12% visible" after just a couple of pixels), long before the much
+    // taller section above it reaches that same 12% mark. That timing
+    // mismatch used to make the colored fringe pop in fully-opaque and sit
+    // there alone while its own section was still fading in above it. Fix:
+    // give it the same .reveal opacity treatment, but never observe it
     // independently (see the io.observe selector below) — instead flip it to
-    // .in in the exact same animation frame as the section it precedes, via
-    // a previousElementSibling lookup inside that section's own IO entry.
+    // .in in the exact same animation frame as the section that owns it, via
+    // a nextElementSibling lookup inside that section's own IO entry.
     document.querySelectorAll('.scallop-div').forEach(function (d) { d.classList.add('reveal'); });
 
     if (reduce || !('IntersectionObserver' in window)) {
@@ -544,9 +555,9 @@
       entries.forEach(function (en) {
         if (en.isIntersecting) {
           en.target.classList.add('in');
-          // pull the preceding scallop divider (if any) along with it, same frame
-          var prevSib = en.target.previousElementSibling;
-          if (prevSib && prevSib.classList.contains('scallop-div')) prevSib.classList.add('in');
+          // pull this section's own trailing fringe along with it, same frame
+          var nextSib = en.target.nextElementSibling;
+          if (nextSib && nextSib.classList.contains('scallop-div')) nextSib.classList.add('in');
           io.unobserve(en.target);
         }
       });

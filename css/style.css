@@ -180,11 +180,15 @@ b{font-weight:700}
 .sec--pink .sec__title{color:var(--accent-d)}
 .sec--pink .sec__text{color:#7a5560}
 
-/* scalloped divider between two sections of different color (real DOM sibling,
-   never clipped by overflow:hidden on either neighbor). Width always matches
-   the LOWER section (add .scallop-div--wide when the lower sec is sec--wide). */
+/* scalloped fringe hem, permanently attached to the BOTTOM of its own
+   section (real DOM sibling right after it, never clipped by overflow:hidden
+   on that section). Width always matches ITS OWN section (add
+   .scallop-div--wide when that sec is sec--wide). sec--fuse-below flattens
+   that section's own bottom corners + kills its own bottom margin so the
+   fringe sits flush with zero seam; the NEXT section keeps its full radius +
+   full margin-top untouched, which is exactly what keeps blocks visibly
+   separate (no more "glued together" cards). */
 .sec--fuse-below{margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0}
-.sec--fuse-above{margin-top:0;border-top-left-radius:0;border-top-right-radius:0}
 .scallop-div{
   /* height must equal the mask circle's radius so the scallop arc's tip
      starts exactly at the div's top edge (flush against the section above)
@@ -882,13 +886,11 @@ b{font-weight:700}
   .splash__spray--heart{width:clamp(56px,20vw,86px);bottom:6%;right:3%}
   .sec{margin:28px 14px;padding:44px 18px;border-radius:28px}
   /* .sec's own shorthand margin above re-sets ALL 4 sides (same specificity,
-     later in source than the unconditional .sec--fuse-above/below rules
-     earlier in this file) -> it was silently winning the cascade and
-     undoing the 0 margin needed to fuse two touching sections flush
-     against the scallop divider between them. Re-assert it here, after,
-     so fused edges actually stay flush on mobile too. */
+     later in source than the unconditional .sec--fuse-below rule earlier in
+     this file) -> it was silently winning the cascade and undoing the 0
+     margin needed to keep a section's own fringe flush against its bottom
+     edge. Re-assert it here, after, so the fringe stays flush on mobile too. */
   .sec--fuse-below{margin-bottom:0}
-  .sec--fuse-above{margin-top:0}
   .hero{padding:64px 20px 50px}
   .hero__title{font-size:clamp(2.3rem,12vw,4.2rem)}
   .hero__cherub{width:26vw;top:8%;opacity:.7}
