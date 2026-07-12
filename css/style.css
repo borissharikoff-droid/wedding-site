@@ -590,30 +590,53 @@ b{font-weight:700}
   font-size:.56rem;letter-spacing:.01em;color:#9a8f80;white-space:nowrap;
   font-weight:600;pointer-events:none;line-height:1.2;
 }
-.dc__cols{display:flex;gap:22px;flex-wrap:wrap;justify-content:center;align-items:flex-start;margin-top:20px}
+.dc__cols{display:flex;gap:22px;flex-wrap:wrap;justify-content:center;align-items:stretch;margin-top:20px}
 .dc__col{
-  flex:1 1 300px;max-width:440px;background:#fff;border-radius:24px;padding:24px 22px;
+  flex:1 1 320px;max-width:460px;background:#fff;border-radius:24px;padding:28px 24px 26px;
   border:2px solid var(--pink-soft);text-align:center;
+  display:flex;flex-direction:column;align-items:center;
 }
-.dc__h{font-family:'Unbounded',sans-serif;text-transform:uppercase;font-size:.9rem;color:var(--accent);margin:0 0 16px;letter-spacing:.05em}
-.dc__col p{font-size:.95rem;color:#5a5145}
-/* him/her moodboard photo above each dresscode column — user-supplied
+/* gender heading now sits ABOVE the photo and is a proper eye-catching
+   sub-title — matches the site's Unbounded display type, sized up so it
+   clearly labels each column at a glance */
+.dc__h{
+  font-family:'Unbounded',sans-serif;font-weight:800;text-transform:uppercase;
+  font-size:clamp(1.1rem,3.4vw,1.5rem);color:var(--accent);
+  margin:0 0 20px;letter-spacing:.03em;line-height:1.1;
+}
+/* column description text — same typography as the site's .sec__text
+   (Manrope, same colour/size/leading) so it reads consistently with the
+   rest of the page instead of looking like a different, smaller note */
+.dc__desc{
+  font-size:1.02rem;color:#453d33;line-height:1.55;
+  max-width:360px;margin:2px auto 0;
+}
+/* him/her moodboard photo — centered in its own column. User-supplied
    collages are tall portraits of varying ratio, so DON'T force a fixed
-   aspect-ratio/cover-crop (that chopped off heads/looks). Let the image keep
-   its own natural ratio; the taped polaroid frame hugs it. */
-.dc__photo{width:clamp(220px,82%,320px);margin:0 auto 18px}
-.dc__col .dc__photo img{height:auto;filter:saturate(1.03) contrast(1.02)}
-
-/* compact palette that lives INSIDE a dresscode column (its own row of
-   swatches per gender), separate from the old full-width single palette */
-.palette--dc{margin:0 auto 18px;max-width:100%;gap:0}
-.palette--dc .palette__chips{column-gap:9px;row-gap:26px}
-.palette--dc .palette__chips i{
-  flex:0 0 calc((100% - 9px*5)/6);border-radius:12px;
+   aspect-ratio/cover-crop. Keep natural ratio; taped polaroid frame hugs it.
+   margin auto + block centering keeps it dead-center under the heading. */
+.dc__photo{width:clamp(230px,90%,340px);margin:0 auto 20px}
+/* both moodboards share the same display height so the two columns line up
+   (palette + text start at the same vertical level). object-fit:contain keeps
+   each collage fully visible & centered inside that fixed height, no crop. */
+.dc__col .dc__photo img{height:520px;object-fit:contain;filter:saturate(1.03) contrast(1.02)}
+@media(max-width:900px){
+  /* stacked single-column layout — let each photo use its natural height */
+  .dc__col .dc__photo img{height:auto}
 }
-.dc__col--him .dc__photo{transform:rotate(-4deg)}
-.dc__col--her .dc__photo{transform:rotate(4deg)}
-.dc__col--him .dc__photo:hover,.dc__col--her .dc__photo:hover{transform:rotate(0) scale(1.03)}
+
+/* compact palette that lives INSIDE a dresscode column — 6 swatches in one
+   centered row per gender, separate from the old full-width single palette */
+.palette--dc{margin:0 auto 20px;max-width:100%;gap:0;width:100%}
+.palette--dc .palette__chips{column-gap:10px;row-gap:26px;justify-content:center}
+.palette--dc .palette__chips i{
+  flex:0 0 calc((100% - 10px*5)/6);border-radius:12px;
+}
+/* photos sit straight & perfectly centered in their column (no rotate — a
+   tilt on these wide collages visually shoved them off to one side); subtle
+   scale on hover only */
+.dc__col--him .dc__photo,.dc__col--her .dc__photo{transform:rotate(0)}
+.dc__col--him .dc__photo:hover,.dc__col--her .dc__photo:hover{transform:scale(1.03)}
 .dc__photo{transition:transform .25s ease}
 
 /* ===== RSVP FORM ===== */
