@@ -34,9 +34,16 @@ async function ensureSchema() {
       name       TEXT NOT NULL,
       contact    TEXT NOT NULL,
       attend     TEXT NOT NULL CHECK (attend IN ('yes', 'no')),
+      alcohol    TEXT CHECK (alcohol IN ('yes', 'no')),
       created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
+  `);
+  // add the "will you drink alcohol?" column to databases created before this
+  // field existed (idempotent — IF NOT EXISTS makes redeploys a no-op). It's
+  // nullable on purpose: guests who answer "не смогу" have no alcohol value.
+  await pool.query(`
+    ALTER TABLE rsvp ADD COLUMN IF NOT EXISTS alcohol TEXT CHECK (alcohol IN ('yes', 'no'));
   `);
   // one submission per contact — resubmitting the form updates the existing
   // row instead of piling up duplicates (mirrors the old "rsvp_mine" UX,
@@ -62,6 +69,9 @@ function validateRsvpPayload(body) {
   const name = typeof body.name === 'string' ? body.name.trim() : '';
   const contact = typeof body.contact === 'string' ? body.contact.trim() : '';
   const attend = body.attend;
+  // alcohol is optional overall (guests not coming don't answer it), but if
+  // present it must be 'yes'/'no'. Absent / null / '' all normalize to null.
+  const rawAlcohol = body.alcohol == null || body.alcohol === '' ? null : body.alcohol;
 
   if (!name) errors.push('name is required');
   else if (name.length > NAME_MAX) errors.push(`name must be at most ${NAME_MAX} characters`);
@@ -71,7 +81,13 @@ function validateRsvpPayload(body) {
 
   if (attend !== 'yes' && attend !== 'no') errors.push('attend must be "yes" or "no"');
 
-  return { errors, clean: { name, contact, attend } };
+  if (rawAlcohol !== null && rawAlcohol !== 'yes' && rawAlcohol !== 'no') {
+    errors.push('alcohol must be "yes", "no" or empty');
+  }
+  // a guest who isn't coming can't carry an alcohol preference
+  const alcohol = attend === 'yes' ? rawAlcohol : null;
+
+  return { errors, clean: { name, contact, attend, alcohol } };
 }
 
 /* ---------- routes ---------- */
@@ -85,12 +101,12 @@ app.post('/api/rsvp', async (req, res) => {
   }
   try {
     const result = await pool.query(
-      `INSERT INTO rsvp (name, contact, attend)
-       VALUES ($1, $2, $3)
+      `INSERT INTO rsvp (name, contact, attend, alcohol)
+       VALUES ($1, $2, $3, $4)
        ON CONFLICT (lower(contact))
-       DO UPDATE SET name = EXCLUDED.name, attend = EXCLUDED.attend, updated_at = now()
-       RETURNING id, name, contact, attend, created_at, updated_at`,
-      [clean.name, clean.contact, clean.attend]
+       DO UPDATE SET name = EXCLUDED.name, attend = EXCLUDED.attend, alcohol = EXCLUDED.alcohol, updated_at = now()
+       RETURNING id, name, contact, attend, alcohol, created_at, updated_at`,
+      [clean.name, clean.contact, clean.attend, clean.alcohol]
     );
     res.status(201).json({ ok: true, rsvp: result.rows[0] });
   } catch (err) {
@@ -109,7 +125,7 @@ app.get('/api/rsvp', async (req, res) => {
   }
   try {
     const result = await pool.query(
-      `SELECT id, name, contact, attend, created_at, updated_at
+      `SELECT id, name, contact, attend, alcohol, created_at, updated_at
        FROM rsvp ORDER BY created_at DESC`
     );
     res.json({ ok: true, count: result.rows.length, rsvps: result.rows });

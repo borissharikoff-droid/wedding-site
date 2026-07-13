@@ -226,14 +226,30 @@
   // (Telegram/Instagram Android) that may lack `:has()` support.
   function syncAttendOptionStyles() {
     if (!form) return;
-    var radios = form.querySelectorAll('input[name="attend"]');
+    // highlight the selected chip for BOTH question groups (attend + alcohol)
+    var radios = form.querySelectorAll('input[name="attend"], input[name="alcohol"]');
     for (var i = 0; i < radios.length; i++) {
       var label = radios[i].closest('.opt');
       if (label) label.classList.toggle('is-checked', radios[i].checked);
     }
+    // the "будете пить алкоголь?" question only makes sense for guests who are
+    // actually coming — reveal it on attend=yes, hide + reset it on attend=no
+    // (so a "не смогу" answer never carries a stray alcohol value).
+    var alcoholBox = document.getElementById('rsvpAlcohol');
+    if (alcoholBox) {
+      var attendEl = form.querySelector('input[name="attend"]:checked');
+      var coming = attendEl && attendEl.value === 'yes';
+      alcoholBox.hidden = !coming;
+      if (!coming) {
+        form.querySelectorAll('input[name="alcohol"]').forEach(function (r) {
+          r.checked = false;
+          var l = r.closest('.opt'); if (l) l.classList.remove('is-checked');
+        });
+      }
+    }
   }
   if (form) {
-    form.querySelectorAll('input[name="attend"]').forEach(function (r) {
+    form.querySelectorAll('input[name="attend"], input[name="alcohol"]').forEach(function (r) {
       r.addEventListener('change', syncAttendOptionStyles);
     });
   }
@@ -249,6 +265,10 @@
           var r = form.querySelector('input[name="attend"][value="' + mine.attend + '"]');
           if (r) r.checked = true;
         }
+        if (mine.alcohol) {
+          var ra = form.querySelector('input[name="alcohol"][value="' + mine.alcohol + '"]');
+          if (ra) ra.checked = true;
+        }
         if (note) { note.textContent = 'Вы уже отправили анкету. Спасибо! Можно обновить ответ.'; note.className = 'rsvp__note ok'; }
       }
       // no mock prefill — empty fields show placeholders only
@@ -260,9 +280,18 @@
       var name = form.name.value.trim();
       var contact = form.contact.value.trim();
       var attendEl = form.querySelector('input[name="attend"]:checked');
+      var alcoholEl = form.querySelector('input[name="alcohol"]:checked');
+      var coming = attendEl && attendEl.value === 'yes';
 
       if (!name || !contact || !attendEl) {
         note.textContent = 'Ой, что-то не заполнено — глянь ещё разок.';
+        note.className = 'rsvp__note err';
+        return;
+      }
+      // if the guest is coming, they must also answer the alcohol question
+      // (the block is only visible in that case — see syncAttendOptionStyles)
+      if (coming && !alcoholEl) {
+        note.textContent = 'Отметь, пожалуйста, будешь ли пить алкоголь.';
         note.className = 'rsvp__note err';
         return;
       }
@@ -276,6 +305,8 @@
         name: name,
         contact: contact,
         attend: attendEl.value,
+        // only send alcohol when coming; "не смогу" carries no alcohol value
+        alcohol: coming && alcoholEl ? alcoholEl.value : null,
         ts: new Date().toISOString()
       };
 

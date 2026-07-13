@@ -322,6 +322,17 @@
         <label class="opt"><input type="radio" name="attend" value="no"><span>К сожалению, не смогу</span><i class="opt__check">✓</i></label>
       </fieldset>
 
+      <!-- alcohol preference — only relevant for guests who ARE coming, so JS
+           reveals this block (.rsvp__alcohol) only when attend=yes and clears
+           it on attend=no. Not `required` in markup: the server treats an
+           empty value as null, and the form's own JS enforces it only while
+           it's visible, so a "не смогу" answer is never blocked by it. -->
+      <fieldset class="rsvp__choice rsvp__alcohol" id="rsvpAlcohol" hidden>
+        <legend>Будете ли пить алкоголь?</legend>
+        <label class="opt"><input type="radio" name="alcohol" value="yes"><span>Да</span><i class="opt__check">✓</i></label>
+        <label class="opt"><input type="radio" name="alcohol" value="no"><span>Нет</span><i class="opt__check">✓</i></label>
+      </fieldset>
+
       <button type="submit" class="btn btn--light rsvp__submit">Отправить анкету</button>
       <p class="rsvp__note" id="rsvpNote" role="status"></p>
     </form>
@@ -397,6 +408,6 @@
   <button class="lightbox__nav lightbox__nav--next" id="lbNext" aria-label="Следующее">›</button>
 </div>
 
-<script src="js/main.js?v=34"></script>
+<script src="js/main.js?v=35"></script>
 </body>
 </html>
