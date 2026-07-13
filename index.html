@@ -19,6 +19,23 @@
      the splash never sits there blank while guests wait to see the envelope -->
 <link rel="preload" as="image" href="assets/photos/envelope.webp" fetchpriority="high">
 <link rel="preload" as="image" href="assets/photos/wax_seal.webp" fetchpriority="high">
+<!-- above-the-fold decorative sprites (hero cherubs, section icons, petals) are
+     fetched by JS via loadImg() only AFTER the script parses, so on a fresh
+     load the hero used to reveal bare and the cherubs/icons "arrived late".
+     Preload them here so they download in parallel with css/js/fonts and are
+     already in cache by the time loadImg() asks for them. URLs (incl. ?v=)
+     must match loadImg() exactly, and loadImg() no longer appends ?r= on its
+     first try, so these preloads are actually reused (no double fetch).
+     fetchpriority=low keeps them from competing with the envelope/seal above. -->
+<!-- crossorigin is REQUIRED here: loadImg() sets img.crossOrigin='anonymous'
+     (so the sprites can be drawn to a canvas for chroma-keying without
+     tainting it). A preload without crossorigin fetches in a different
+     credentials mode, so the browser treats it as a DIFFERENT resource and
+     downloads the sprite twice. Matching crossorigin makes the preload
+     actually satisfy loadImg()'s request. -->
+<link rel="preload" as="image" href="assets/cherubs_raw.png?v=4" crossorigin fetchpriority="low">
+<link rel="preload" as="image" href="assets/icons2_raw.png?v=2" crossorigin fetchpriority="low">
+<link rel="preload" as="image" href="assets/flowers_raw.png?v=4" crossorigin fetchpriority="low">
 <link rel="stylesheet" href="css/style.css?v=43">
 </head>
 <body>
@@ -222,8 +239,8 @@
       <div class="dc__col dc__col--her">
         <h3 class="dc__h">Для девушек</h3>
         <div class="dc__photos">
-          <figure class="dc__photo pbframe taped taped--r"><img src="assets/photos/dresscode_her_v2.png" alt="Образы для девушек" data-lb loading="lazy" decoding="async"></figure>
-          <figure class="dc__photo pbframe taped taped--l"><img src="assets/photos/dresscode_her2.png" alt="Образы для девушек" data-lb loading="lazy" decoding="async"></figure>
+          <figure class="dc__photo pbframe taped taped--r"><img src="assets/photos/dresscode_her_v2.webp" alt="Образы для девушек" data-lb loading="lazy" decoding="async"></figure>
+          <figure class="dc__photo pbframe taped taped--l"><img src="assets/photos/dresscode_her2.webp" alt="Образы для девушек" data-lb loading="lazy" decoding="async"></figure>
         </div>
         <div class="palette palette--dc">
           <div class="palette__chips">
@@ -240,8 +257,8 @@
       <div class="dc__col dc__col--him">
         <h3 class="dc__h">Для мужчин</h3>
         <div class="dc__photos">
-          <figure class="dc__photo pbframe taped taped--l"><img src="assets/photos/dresscode_him_v2.png" alt="Образы для мужчин" data-lb loading="lazy" decoding="async"></figure>
-          <figure class="dc__photo pbframe taped taped--r"><img src="assets/photos/dresscode_him2.png" alt="Образы для мужчин" data-lb loading="lazy" decoding="async"></figure>
+          <figure class="dc__photo pbframe taped taped--l"><img src="assets/photos/dresscode_him_v2.webp" alt="Образы для мужчин" data-lb loading="lazy" decoding="async"></figure>
+          <figure class="dc__photo pbframe taped taped--r"><img src="assets/photos/dresscode_him2.webp" alt="Образы для мужчин" data-lb loading="lazy" decoding="async"></figure>
         </div>
         <div class="palette palette--dc">
           <div class="palette__chips">
@@ -380,6 +397,6 @@
   <button class="lightbox__nav lightbox__nav--next" id="lbNext" aria-label="Следующее">›</button>
 </div>
 
-<script src="js/main.js?v=33"></script>
+<script src="js/main.js?v=34"></script>
 </body>
 </html>

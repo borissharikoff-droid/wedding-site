@@ -358,7 +358,16 @@
             rej(new Error('failed to load ' + src));
           }
         };
-        im.src = src + (src.indexOf('?') === -1 ? '?r=' : '&r=') + triesLeft;
+        // First attempt uses the src verbatim so it can be satisfied by a
+        // matching <link rel="preload"> (and by the normal HTTP cache) with
+        // NO extra request. Only RETRIES append a cache-buster, so a truly
+        // failed/half-fetched image is forced fresh rather than re-reading a
+        // broken cached response.
+        if (triesLeft < retries) {
+          im.src = src + (src.indexOf('?') === -1 ? '?r=' : '&r=') + triesLeft;
+        } else {
+          im.src = src;
+        }
       }
       attempt(retries);
     });
