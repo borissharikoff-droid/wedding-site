@@ -19,7 +19,7 @@
      the splash never sits there blank while guests wait to see the envelope -->
 <link rel="preload" as="image" href="assets/photos/envelope.webp" fetchpriority="high">
 <link rel="preload" as="image" href="assets/photos/wax_seal.webp" fetchpriority="high">
-<link rel="stylesheet" href="css/style.css?v=42">
+<link rel="stylesheet" href="css/style.css?v=43">
 </head>
 <body>
 
@@ -353,6 +353,25 @@
   <button class="toast__close" id="toastClose" type="button" aria-label="Закрыть уведомление">×</button>
 </div>
 
+<!-- ===== BACKGROUND MUSIC ===== -->
+<!-- loop + preload the track; starts on the wax-seal tap (browsers block
+     autoplay before a user gesture, and the splash tap is that gesture).
+     The mute/unmute state is remembered in localStorage so it persists on
+     reload / navigation. -->
+<audio id="bgAudio" src="assets/audio_bg.mp3" loop preload="auto"></audio>
+<button class="soundbtn" id="soundBtn" type="button" aria-label="Включить или выключить музыку" aria-pressed="false">
+  <!-- speaker with waves (sound ON) -->
+  <svg class="soundbtn__ic soundbtn__ic--on" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/>
+    <path d="M16.5 8.5a5 5 0 010 7M18.8 6.2a8.5 8.5 0 010 11.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  </svg>
+  <!-- muted speaker with X (sound OFF) -->
+  <svg class="soundbtn__ic soundbtn__ic--off" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/>
+    <path d="M16.5 9.5l5 5M21.5 9.5l-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  </svg>
+</button>
+
 <!-- lightbox overlay -->
 <div class="lightbox" id="lightbox" aria-hidden="true" role="dialog" aria-label="Просмотр фото">
   <button class="lightbox__close" id="lbClose" aria-label="Закрыть">×</button>
@@ -361,6 +380,6 @@
   <button class="lightbox__nav lightbox__nav--next" id="lbNext" aria-label="Следующее">›</button>
 </div>
 
-<script src="js/main.js?v=32"></script>
+<script src="js/main.js?v=33"></script>
 </body>
 </html>

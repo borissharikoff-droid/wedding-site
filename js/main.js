@@ -4,6 +4,72 @@
 
   var __assetPromises = []; // tracks decorative asset loads so splash preloader can wait for them
 
+  /* ---------- BACKGROUND MUSIC + SOUND TOGGLE ----------
+     A single looping track plays site-wide. Browsers block autoplay until a
+     user gesture, so playback is kicked off from the wax-seal tap (see
+     startMusic() called inside the splash's activateSeal). The on/off choice
+     is stored in localStorage ('bg_sound') so it persists across reloads and
+     navigation. The floating button (bottom-right, fixed) toggles it and is
+     shown once the splash is dismissed. */
+  var bgAudio = document.getElementById('bgAudio');
+  var soundBtn = document.getElementById('soundBtn');
+  // default ON: we WANT the music to greet guests; only stay off if the guest
+  // explicitly muted it on a previous visit.
+  var soundWanted = (function () {
+    try { return localStorage.getItem('bg_sound') !== 'off'; } catch (e) { return true; }
+  })();
+
+  function reflectSoundUI() {
+    if (!soundBtn) return;
+    soundBtn.classList.toggle('is-on', soundWanted && bgAudio && !bgAudio.paused);
+    soundBtn.setAttribute('aria-pressed', (soundWanted && bgAudio && !bgAudio.paused) ? 'true' : 'false');
+  }
+
+  function playMusic() {
+    if (!bgAudio) return;
+    bgAudio.volume = 0.55;
+    var p = bgAudio.play();
+    if (p && p.catch) {
+      p.then(reflectSoundUI).catch(function () { reflectSoundUI(); });
+    } else {
+      reflectSoundUI();
+    }
+  }
+  function pauseMusic() {
+    if (!bgAudio) return;
+    bgAudio.pause();
+    reflectSoundUI();
+  }
+
+  // called once, from the wax-seal tap (a valid user gesture for autoplay)
+  var musicStarted = false;
+  function startMusic() {
+    if (musicStarted) return;
+    musicStarted = true;
+    if (soundWanted) playMusic();
+    else reflectSoundUI();
+  }
+  function showSoundBtn() {
+    if (soundBtn) soundBtn.classList.add('soundbtn--ready');
+  }
+
+  if (soundBtn && bgAudio) {
+    soundBtn.addEventListener('click', function () {
+      soundWanted = !(soundWanted && !bgAudio.paused);
+      if (soundWanted) {
+        try { localStorage.setItem('bg_sound', 'on'); } catch (e) {}
+        playMusic();
+      } else {
+        try { localStorage.setItem('bg_sound', 'off'); } catch (e) {}
+        pauseMusic();
+      }
+    });
+    // keep the icon in sync if playback state changes for any other reason
+    bgAudio.addEventListener('play', reflectSoundUI);
+    bgAudio.addEventListener('pause', reflectSoundUI);
+    reflectSoundUI();
+  }
+
   /* ---------- COUNTDOWN ---------- */
   // 8 Sep 2026, 16:00 Moscow time (UTC+3)
   var TARGET = new Date('2026-09-08T16:00:00+03:00').getTime();
@@ -946,6 +1012,7 @@
 
     function finishReveal() {
       splash.classList.add('hidden');
+      showSoundBtn(); // reveal the floating music toggle now that the site is visible
       unlockBodyScroll(); // idempotent safety-net re-call, see activateSeal below
       setTimeout(function () {
         if (splash) splash.style.display = 'none';
@@ -974,6 +1041,11 @@
       userClicked = true;
       if (e && e.cancelable) e.preventDefault(); // stop a duplicate synthetic 'click' from firing after 'touchend'
       splash.classList.add('open-animation');
+
+      // kick off background music here — the seal tap is a genuine user
+      // gesture, which is exactly what browsers require before they'll allow
+      // audio playback (autoplay is blocked otherwise).
+      startMusic();
 
       // MOBILE FIX: unlock scroll/touch RIGHT NOW, at tap-time, instead of
       // waiting for the ~550ms opening animation to finish (that used to

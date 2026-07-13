@@ -982,9 +982,56 @@ b{font-weight:700}
   .cd__lbl{font-size:.55rem;letter-spacing:.14em}
   .hero__photos .pbframe{width:44%}
 }
+/* ===== BACKGROUND-MUSIC TOGGLE ===== */
+/* fixed floating button, bottom-right, above everything; identical behaviour
+   on desktop & mobile. Uses env(safe-area-inset-*) so it clears the iPhone
+   home-indicator / notch area. */
+.soundbtn{
+  position:fixed;z-index:1200;
+  right:calc(16px + env(safe-area-inset-right,0px));
+  bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  width:52px;height:52px;border-radius:50%;
+  border:2px solid #fff;background:var(--accent);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;padding:0;
+  box-shadow:0 6px 18px rgba(42,36,29,.28);
+  transition:transform .2s cubic-bezier(.175,.885,.32,1.275),
+             background .2s ease, box-shadow .2s ease;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+  /* sits below the splash overlay (z 1000) visually but the splash covers
+     the whole screen anyway; hidden until the site is revealed */
+  opacity:0;visibility:hidden;transform:translateY(12px) scale(.85);
+}
+/* revealed once the splash is dismissed (JS adds .soundbtn--ready) */
+.soundbtn--ready{opacity:1;visibility:visible;transform:translateY(0) scale(1)}
+.soundbtn:hover{background:var(--accent-d);transform:translateY(0) scale(1.08)}
+.soundbtn:active{transform:translateY(0) scale(.94)}
+.soundbtn__ic{width:26px;height:26px;display:block}
+/* default = muted: show the OFF (crossed) icon, hide the ON icon.
+   when playing, JS adds .is-on and we swap them. */
+.soundbtn__ic--on{display:none}
+.soundbtn__ic--off{display:block}
+.soundbtn.is-on .soundbtn__ic--on{display:block}
+.soundbtn.is-on .soundbtn__ic--off{display:none}
+/* gentle pulse ring while music is playing so it reads as "active" */
+.soundbtn.is-on::after{
+  content:'';position:absolute;inset:-2px;border-radius:50%;
+  border:2px solid var(--accent);opacity:.6;
+  animation:soundPulse 2.4s ease-out infinite;pointer-events:none;
+}
+@keyframes soundPulse{
+  0%{transform:scale(1);opacity:.55}
+  100%{transform:scale(1.45);opacity:0}
+}
+@media(max-width:640px){
+  .soundbtn{width:48px;height:48px}
+  .soundbtn__ic{width:24px;height:24px}
+}
+
 @media(prefers-reduced-motion:reduce){
   .sideflower{animation:none!important}
   .splash__spray{animation:none!important}
+  .soundbtn.is-on::after{animation:none;opacity:0}
 }
 @media(prefers-reduced-motion:reduce){
   .hero__cherub,.petal,.bigflower,.heartblob,.ico--wobble{animation:none!important}
