@@ -746,7 +746,7 @@
         'DTEND;TZID=Europe/Moscow:20260909T000000',
         'SUMMARY:Свадьба Филиппа и Александры',
         'DESCRIPTION:Велком 16:30\\, церемония 19:00. Ждём вас!',
-        'LOCATION:Original\\, Москва\\, Подколокольный пер.\\, 16 стр. 4',
+        'LOCATION:Original\\, Москва\\, улица Земляной Вал\\, 9А',
         'END:VEVENT',
         'END:VCALENDAR'
       ].join('\r\n');
