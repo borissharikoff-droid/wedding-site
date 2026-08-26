@@ -184,7 +184,7 @@
   /* ---------- RSVP FORM ---------- */
   var form = document.getElementById('rsvpForm');
   var note = document.getElementById('rsvpNote');
-  var DEADLINE = new Date('2026-08-08T23:59:59+03:00').getTime();
+  var DEADLINE = new Date('2026-08-30T23:59:59+03:00').getTime();
 
   // Backend API — submissions are stored server-side in Postgres (Railway),
   // so the couple can actually see the guest list (previously this only
@@ -296,7 +296,7 @@
         return;
       }
       if (Date.now() > DEADLINE) {
-        note.textContent = 'Упс, анкеты уже не принимаем (дедлайн был 08.08.2026). Пиши нам в Telegram!';
+        note.textContent = 'Упс, анкеты уже не принимаем (дедлайн был 30.08.2026). Пиши нам в Telegram!';
         note.className = 'rsvp__note err';
         return;
       }

@@ -27,7 +27,7 @@ and sliced per cell. The baked `assets/*.png` (non-raw) are unused leftovers.
 
 ## Key data
 - Countdown target: 2026-09-08T16:00:00+03:00
-- RSVP deadline: 2026-08-08
+- RSVP deadline: 2026-08-30
 - Telegram: @Chillyteen, @CommercialPunk
 
 ## v2 update
